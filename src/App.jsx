@@ -11,7 +11,7 @@ import {
   Pencil, Trash2, User, ChevronRight, Calendar,
   AlertTriangle, CheckCircle, Flag, PiggyBank, X,
   CreditCard, Landmark, Clock, TrendingDown,
-  Info, Receipt
+  Receipt
 } from 'lucide-react';
 
 // ─── DATOS INICIALES ──────────────────────────────────────────────────────────
@@ -269,7 +269,6 @@ const fmt      = (n) => new Intl.NumberFormat('es-PE',{style:'currency',currency
 const fmtShort = (n) => n >= 1000 ? `S/${(n/1000).toFixed(1)}k` : `S/${Math.round(n)}`;
 const fmtInt   = (n) => new Intl.NumberFormat('es-PE',{style:'currency',currency:'PEN',minimumFractionDigits:0}).format(n);
 const fmtFecha = (fechaStr) => { if(!fechaStr) return ''; const [y,m,d] = fechaStr.split('-'); return `${d}/${m}/${y.slice(2)}`; };
-const fmtDiaMes = (dia, mes) => { const mm = String(mes).padStart(2,'0'); const dd = String(dia).padStart(2,'0'); return `${dd}/${mm}`; };
 
 // ─── DÍAS HASTA VENCIMIENTO ───────────────────────────────────────────────────
 const diasHasta = (fechaStr) => {
