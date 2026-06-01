@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import {
-  AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
-  XAxis, YAxis, Tooltip, ResponsiveContainer, Legend
+  BarChart, Bar, PieChart, Pie, Cell,
+  XAxis, YAxis, Tooltip, ResponsiveContainer
 } from 'recharts';
 
 const CATEGORIAS_GASTO = ['Alimentación','Transporte','Servicios','Salud','Entretenimiento','Ropa','Educación','Otros'];
