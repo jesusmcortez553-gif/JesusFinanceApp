@@ -6,11 +6,11 @@ import {
 import {
   ShoppingCart, Car, Zap, Heart, Gamepad2, Shirt, BookOpen, Package,
   Briefcase, Store, Monitor, TrendingUp, Gift,
-  Home, BarChart2, Plus, Target, Settings,
+  Home, BarChart2, Plus, Target,
   ArrowUpCircle, ArrowDownCircle, Wallet,
   Pencil, Trash2, User, ChevronRight, Calendar,
   AlertTriangle, CheckCircle, Flag, PiggyBank, X,
-  CreditCard, Landmark, Clock, DollarSign, TrendingDown,
+  CreditCard, Landmark, Clock, TrendingDown,
   AlertCircle, Info, Banknote, Receipt
 } from 'lucide-react';
 
@@ -581,7 +581,7 @@ export default function App() {
   const [txs, setTxs]         = useState(INITIAL_TX);
   const [presupuestos, setPresupuestos] = useState(INITIAL_PRESUPUESTOS);
   const [metas, setMetas]     = useState(INITIAL_METAS);
-  const [tcs, setTcs]         = useState(INITIAL_TC);
+  const [tcs]                 = useState(INITIAL_TC);
   const [prestamos, setPrestamos] = useState(INITIAL_PRESTAMOS);
   const [chartPeriod, setChartPeriod] = useState('día');
   const [showAll, setShowAll] = useState(false);
@@ -1073,7 +1073,6 @@ export default function App() {
               {/* ── Score financiero ── */}
               {(() => {
                 const tasaAhorro = stats.ingresos > 0 ? (stats.balance / stats.ingresos) * 100 : 0;
-                const totalDeuda = tcs.reduce((s,t)=>s+t.deudaActual,0) + prestamos.reduce((s,p)=>s+p.capitalPendiente,0);
                 const cuotasMes  = prestamos.reduce((s,p)=>s+p.cuotaMensual,0);
                 const ratioDeuda = stats.ingresos > 0 ? (cuotasMes / stats.ingresos) * 100 : 0;
                 let score = 100;
