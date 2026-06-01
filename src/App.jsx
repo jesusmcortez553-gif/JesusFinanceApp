@@ -258,8 +258,6 @@ const diasHasta = (fechaStr) => {
 // ─── ALERTAS TC (facturación y pago) ─────────────────────────────────────────
 const alertaTC = (tc) => {
   const hoy = new Date();
-  const diaHoy = hoy.getDate();
-  const mesHoy = hoy.getMonth() + 1;
   // Días hasta cierre de facturación
   const cierreDate = new Date(hoy.getFullYear(), tc.mesFacturacion - 1, tc.fechaFacturacion);
   if (cierreDate < hoy) cierreDate.setMonth(cierreDate.getMonth() + 1);
@@ -624,8 +622,6 @@ export default function App() {
   const [alertaEmoc, setAlertaEmoc] = useState(null);
   const [alertaAceptada, setAlertaAceptada] = useState(false);
   const [tipoEspecial, setTipoEspecial] = useState(null); // 'salario' | 'disposicion' | 'pagoTC'
-  const [pagoTCMonto, setPagoTCMonto]   = useState('');
-  const [pagoTCId, setPagoTCId]         = useState(null);
   const [showResumenSalario, setShowResumenSalario] = useState(false);
   const [resumenSalario, setResumenSalario]         = useState(null);
 
