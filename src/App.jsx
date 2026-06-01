@@ -11,7 +11,7 @@ import {
   Pencil, Trash2, User, ChevronRight, Calendar,
   AlertTriangle, CheckCircle, Flag, PiggyBank, X,
   CreditCard, Landmark, Clock, TrendingDown,
-  AlertCircle, Info, Banknote, Receipt
+  Info, Receipt
 } from 'lucide-react';
 
 // ─── DATOS INICIALES ──────────────────────────────────────────────────────────
@@ -184,6 +184,35 @@ const INITIAL_METAS = [
 ];
 
 // ── FASE 3: Tarjetas de crédito y préstamos (datos reales BCP) ──────────────
+
+// Ciclos de facturación reales VISA BCP ****2769
+const CICLOS_BCP = {
+  1:  { cierreDesde:'25/12', cierreHasta:'23/01', limitePago:'23/02/26' },
+  2:  { cierreDesde:'24/01', cierreHasta:'25/02', limitePago:'23/03/26' },
+  3:  { cierreDesde:'26/02', cierreHasta:'25/03', limitePago:'21/04/26' },
+  4:  { cierreDesde:'26/03', cierreHasta:'25/04', limitePago:'20/05/26' },
+  5:  { cierreDesde:'26/04', cierreHasta:'25/05', limitePago:'22/06/26' },
+  6:  { cierreDesde:'26/05', cierreHasta:'25/06', limitePago:'22/07/26' },
+  7:  { cierreDesde:'26/06', cierreHasta:'24/07', limitePago:'20/08/26' },
+  8:  { cierreDesde:'25/07', cierreHasta:'25/08', limitePago:'22/09/26' },
+  9:  { cierreDesde:'26/08', cierreHasta:'25/09', limitePago:'20/10/26' },
+  10: { cierreDesde:'26/09', cierreHasta:'23/10', limitePago:'22/11/26' },
+  11: { cierreDesde:'24/10', cierreHasta:'25/11', limitePago:'22/12/26' },
+  12: { cierreDesde:'26/11', cierreHasta:'24/12', limitePago:'20/01/27' },
+};
+
+const getCicloActual = () => {
+  const hoy = new Date();
+  const mes = hoy.getMonth() + 1;
+  return CICLOS_BCP[mes] || CICLOS_BCP[6];
+};
+
+const parseLimitePago = (str) => {
+  // str = 'dd/mm/aa' e.g. '22/07/26'
+  const [d,m,y] = str.split('/');
+  return new Date(`20${y}-${m}-${d}`);
+};
+
 const INITIAL_TC = [
   {
     id: 1,
@@ -193,11 +222,6 @@ const INITIAL_TC = [
     lineaTotal: 22900,
     consumido: 1889.85,
     deudaActual: 630.82,
-    pagoMinimo: 0,
-    fechaFacturacion: 26,   // día del mes
-    fechaPago: 21,          // día del mes siguiente
-    mesFacturacion: 6,      // junio
-    mesPago: 8,             // agosto
     tea: 34.33,
     teaEfectivo: 87.50,
     color: '#b45309',
@@ -256,23 +280,25 @@ const diasHasta = (fechaStr) => {
 };
 
 // ─── ALERTAS TC (facturación y pago) ─────────────────────────────────────────
-const alertaTC = (tc) => {
+const alertaTC = () => {
   const hoy = new Date();
-  // Días hasta cierre de facturación
-  const cierreDate = new Date(hoy.getFullYear(), tc.mesFacturacion - 1, tc.fechaFacturacion);
-  if (cierreDate < hoy) cierreDate.setMonth(cierreDate.getMonth() + 1);
-  const diasCierre = Math.ceil((cierreDate - hoy) / (1000*60*60*24));
-  // Días hasta límite de pago
-  const pagoDate = new Date(hoy.getFullYear(), tc.mesPago - 1, tc.fechaPago);
-  if (pagoDate < hoy) pagoDate.setMonth(pagoDate.getMonth() + 1);
+  hoy.setHours(0,0,0,0);
+  const ciclo = getCicloActual();
+  const pagoDate = parseLimitePago(ciclo.limitePago);
   const diasPago = Math.ceil((pagoDate - hoy) / (1000*60*60*24));
+  const mes = hoy.getMonth();
+  const diaCierre = (mes === 6 || mes === 11) ? 24 : 25;
+  const cierreDate = new Date(hoy.getFullYear(), mes, diaCierre);
+  if (cierreDate < hoy) cierreDate.setMonth(cierreDate.getMonth()+1);
+  const diasCierre = Math.ceil((cierreDate - hoy) / (1000*60*60*24));
   const alertas = [];
   if (diasCierre <= 3 && diasCierre >= 0)
-    alertas.push({ tipo:'cierre', dias:diasCierre, msg: diasCierre===0 ? `Tu TC cierra HOY — todo lo que consumas se factura este mes` : `Tu TC cierra en ${diasCierre} día${diasCierre>1?'s':''} — lo que consumas ahora se factura este ciclo`, color:'#d97706', bg:'#fffbeb', border:'#fde68a' });
+    alertas.push({ tipo:'cierre', dias:diasCierre, msg: diasCierre===0 ? 'Tu TC cierra HOY' : `Tu TC cierra en ${diasCierre} día${diasCierre>1?'s':''}`, color:'#d97706', bg:'#fffbeb', border:'#fde68a' });
   if (diasPago <= 3 && diasPago >= 0)
-    alertas.push({ tipo:'pago', dias:diasPago, msg: diasPago===0 ? `Fecha límite de pago TC es HOY` : `Tu pago de TC vence en ${diasPago} día${diasPago>1?'s':''}`, color:'#dc2626', bg:'#fef2f2', border:'#fecaca' });
+    alertas.push({ tipo:'pago', dias:diasPago, msg: diasPago===0 ? 'Fecha límite de pago TC es HOY' : `Tu pago de TC vence en ${diasPago} día${diasPago>1?'s':''}`, color:'#dc2626', bg:'#fef2f2', border:'#fecaca' });
   return alertas;
 };
+
 
 const urgenciaColor = (dias) => {
   if (dias <= 5)  return { bg:'#fef2f2', border:'#fecaca', text:'#dc2626', badge:'#ef4444' };
@@ -296,6 +322,7 @@ const S = {
   pillRow:  { display:'flex', gap:8, marginTop:16 },
   pill:(active)=>({ padding:'7px 18px', borderRadius:20, border:'none', cursor:'pointer', fontSize:12, fontWeight:700, background:active?'#fff':'rgba(255,255,255,0.18)', color:active?'#7c3aed':'#fff', transition:'all 0.2s' }),
   statsRow: { display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:10, padding:'0 16px', marginTop:-36, marginBottom:16, position:'relative', zIndex:10 },
+  statsRowWithAlerts: { display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:10, padding:'0 16px', marginTop:16, marginBottom:16, position:'relative', zIndex:10 },
   statCard: { background:'#fff', borderRadius:16, padding:'12px 10px', boxShadow:'0 4px 20px rgba(91,33,182,0.12)', display:'flex', flexDirection:'column', alignItems:'center', gap:4 },
   statIconWrap:(color)=>({ width:30, height:30, borderRadius:10, background:color+'18', display:'flex', alignItems:'center', justifyContent:'center' }),
   statLabel:{ fontSize:10, color:'#9ca3af', fontWeight:600 },
@@ -350,7 +377,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 const TarjetaVisual = ({ tc }) => {
   const disponible = tc.lineaTotal - tc.consumido;
   const pctUsado   = Math.round(tc.consumido / tc.lineaTotal * 100);
-  const diasVence  = diasHasta(`2026-0${tc.mesPago}-${tc.fechaPago}`);
+  const cicloV = getCicloActual(); const pagoDateV = parseLimitePago(cicloV.limitePago); const diasVence = Math.ceil((pagoDateV - new Date()) / (1000*60*60*24));
   const urg        = urgenciaColor(diasVence);
 
   return (
@@ -396,7 +423,7 @@ const TarjetaVisual = ({ tc }) => {
               <Receipt size={12} color="#7c3aed"/>
               <span style={{fontSize:10,color:'#9ca3af',fontWeight:600,textTransform:'uppercase',letterSpacing:0.3}}>Facturación</span>
             </div>
-            <div style={{fontSize:14,fontWeight:800,color:'#1f1b4b'}}>{fmtDiaMes(tc.fechaFacturacion,tc.mesFacturacion)} – {fmtDiaMes(25,7)}</div>
+            <div style={{fontSize:14,fontWeight:800,color:'#1f1b4b'}}>{getCicloActual().cierreDesde} – {getCicloActual().cierreHasta}</div>
             <div style={{fontSize:11,color:'#9ca3af',marginTop:2}}>Ciclo activo</div>
           </div>
           <div style={{background:urg.bg,borderRadius:12,padding:'10px 12px',border:`1px solid ${urg.border}`}}>
@@ -404,7 +431,7 @@ const TarjetaVisual = ({ tc }) => {
               <Calendar size={12} color={urg.badge}/>
               <span style={{fontSize:10,color:urg.text,fontWeight:600,textTransform:'uppercase',letterSpacing:0.3}}>Límite pago</span>
             </div>
-            <div style={{fontSize:14,fontWeight:800,color:urg.text}}>{fmtDiaMes(tc.fechaPago,tc.mesPago)}/26</div>
+            <div style={{fontSize:14,fontWeight:800,color:urg.text}}>{getCicloActual().limitePago}</div>
             <div style={{fontSize:11,color:urg.text,marginTop:2,fontWeight:600}}>
               {diasVence > 0 ? `${diasVence} días` : 'Vencido'}
             </div>
@@ -661,7 +688,7 @@ export default function App() {
   // Próximos vencimientos (TC + Préstamos)
   const proximosVenc = useMemo(()=>{
     const lista = [];
-    tcs.forEach(tc => lista.push({ nombre:tc.nombre, monto:tc.deudaActual, fecha:`2026-0${tc.mesPago}-${String(tc.fechaPago).padStart(2,'0')}`, tipo:'TC', color:tc.color }));
+    const cicloProx = getCicloActual(); const [pd,pm,py] = cicloProx.limitePago.split('/'); tcs.forEach(tc => lista.push({ nombre:tc.nombre, monto:tc.deudaActual, fecha:`20${py}-${pm}-${pd}`, tipo:'TC', color:tc.color }));
     prestamos.forEach(p => lista.push({ nombre:p.nombre+' '+p.numero, monto:p.cuotaMensual, fecha:p.proximoPago, tipo:'Crédito', color:p.color }));
     return lista.sort((a,b)=>new Date(a.fecha)-new Date(b.fecha));
   },[tcs,prestamos]);
@@ -821,7 +848,7 @@ export default function App() {
           )}
 
           {/* Alertas TC facturación y pago */}
-          {tcs.flatMap(tc=>alertaTC(tc)).map((a,i)=>(
+          {alertaTC().map((a,i)=>(
             <div key={i} style={{margin:'8px 16px 0',background:a.bg,border:`1px solid ${a.border}`,borderRadius:14,padding:'10px 14px',display:'flex',alignItems:'center',gap:10}}>
               <Calendar size={16} color={a.color}/>
               <div style={{flex:1}}><span style={{fontSize:12,fontWeight:700,color:a.color}}>{a.msg}</span></div>
@@ -834,12 +861,12 @@ export default function App() {
               <Clock size={16} color="#ef4444"/>
               <div style={{flex:1}}>
                 <span style={{fontSize:12,fontWeight:700,color:'#dc2626'}}>Pago en {diasHasta(v.fecha)} días — {v.nombre}</span>
-                <div style={{fontSize:12,color:'#9ca3af'}}>{fmt(v.monto)} · {v.fecha}</div>
+                <div style={{fontSize:12,color:'#9ca3af'}}>{fmt(v.monto)} · {fmtFecha(v.fecha)}</div>
               </div>
             </div>
           ))}
 
-          <div style={S.statsRow}>
+          <div style={(alertas.length>0 || alertaTC().length>0) ? S.statsRowWithAlerts : S.statsRow}>
             {[{label:'Ingresos',val:stats.ingresos,color:'#10b981',Icon:ArrowUpCircle},{label:'Gastos',val:stats.gastos,color:'#ef4444',Icon:ArrowDownCircle},{label:'Ahorro',val:stats.balance,color:'#7c3aed',Icon:Wallet}].map(s=>(
               <div key={s.label} style={S.statCard}><div style={S.statIconWrap(s.color)}><s.Icon size={16} color={s.color}/></div><div style={S.statLabel}>{s.label}</div><div style={S.statVal(s.color)}>{fmtShort(s.val)}</div></div>
             ))}
@@ -1073,7 +1100,7 @@ export default function App() {
                   return (
                     <div key={i} style={{display:'flex',alignItems:'center',gap:10,padding:'9px 0',borderBottom:i<proximosVenc.length-1?'1px solid #f5f3ff':'none'}}>
                       <div style={{width:8,height:8,borderRadius:'50%',background:urg.badge,flexShrink:0}}/>
-                      <div style={{flex:1}}><div style={{fontSize:12,fontWeight:700,color:'#1f1b4b'}}>{v.nombre}</div><div style={{fontSize:11,color:'#9ca3af'}}>{v.tipo} · {v.fecha}</div></div>
+                      <div style={{flex:1}}><div style={{fontSize:12,fontWeight:700,color:'#1f1b4b'}}>{v.nombre}</div><div style={{fontSize:11,color:'#9ca3af'}}>{v.tipo} · {fmtFecha(v.fecha)}</div></div>
                       <div style={{textAlign:'right'}}><div style={{fontSize:13,fontWeight:800,color:urg.text}}>{fmt(v.monto)}</div><div style={{fontSize:10,color:urg.text,fontWeight:600}}>{dias>0?`${dias}d`:' Vence hoy'}</div></div>
                     </div>
                   );
@@ -1259,7 +1286,7 @@ export default function App() {
                       <div key={fecha} style={{display:'flex',alignItems:'center',gap:10,padding:'8px 0',borderBottom:i<2?'1px solid #f5f3ff':'none'}}>
                         <div style={{width:24,height:24,borderRadius:8,background:i===0?'#fef3c7':i===1?'#f5f3ff':'#f9fafb',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:800,color:i===0?'#d97706':'#6b7280'}}>{i+1}</div>
                         <div style={{flex:1}}>
-                          <div style={{fontSize:13,fontWeight:700,color:'#1f1b4b'}}>{fecha}</div>
+                          <div style={{fontSize:13,fontWeight:700,color:'#1f1b4b'}}>{fmtFecha(fecha)}</div>
                           <div style={{fontSize:11,color:'#9ca3af'}}>{txs.filter(t=>t.fecha===fecha&&t.tipo==='gasto').map(t=>t.descripcion).join(', ')}</div>
                         </div>
                         <div style={{fontSize:14,fontWeight:800,color:i===0?'#ef4444':'#1f1b4b'}}>{fmt(monto)}</div>
@@ -1338,75 +1365,69 @@ export default function App() {
                 </ResponsiveContainer>
               </div>
 
-              {/* ── Recomendaciones inteligentes ── */}
+              {/* ── Fechas importantes ── */}
               {(() => {
-                const tips = [];
-                const tasaAhorro = stats.ingresos>0?(stats.balance/stats.ingresos)*100:0;
-                const cuotasMes  = prestamos.reduce((s,p)=>s+p.cuotaMensual,0);
-                const ratioDeuda = stats.ingresos>0?(cuotasMes/stats.ingresos)*100:0;
-                const topCat     = catData[0];
-                const tcDeuda    = tcs.reduce((s,t)=>s+t.deudaActual,0);
+                const ciclo = getCicloActual();
+                const hoy = new Date();
+                hoy.setHours(0,0,0,0);
+                const pagoDate = parseLimitePago(ciclo.limitePago);
+                const diasPago = Math.ceil((pagoDate - hoy) / (1000*60*60*24));
+                const mes = hoy.getMonth();
+                const diaCierre = (mes === 6 || mes === 11) ? 24 : 25;
+                const cierreDate = new Date(hoy.getFullYear(), mes, diaCierre);
+                if (cierreDate < hoy) cierreDate.setMonth(cierreDate.getMonth()+1);
+                const diasCierre = Math.ceil((cierreDate - hoy) / (1000*60*60*24));
+                const urgP = diasPago<=3?'#ef4444':diasPago<=10?'#f59e0b':'#10b981';
+                const urgC = diasCierre<=3?'#ef4444':diasCierre<=5?'#f59e0b':'#7c3aed';
 
-                if (tcDeuda > 0)
-                  tips.push({ color:'#ef4444', bg:'#fef2f2', border:'#fecaca', Icon:AlertCircle, titulo:'Paga tu TC al total', texto:`Tienes ${fmt(tcDeuda)} en TC. Pagar solo el mínimo genera S/164 en intereses extra (TEA 34.33%). Si puedes, págala completa el 21/08.` });
-                if (tasaAhorro < 20)
-                  tips.push({ color:'#f59e0b', bg:'#fffbeb', border:'#fde68a', Icon:Info, titulo:`Ahorro bajo: ${tasaAhorro.toFixed(1)}%`, texto:`Lo recomendado es ahorrar al menos 20% del ingreso. Con tus ingresos actuales eso sería ${fmt(stats.ingresos*0.2)}/mes.` });
-                if (ratioDeuda > 30)
-                  tips.push({ color:'#f97316', bg:'#fff7ed', border:'#fed7aa', Icon:AlertTriangle, titulo:`Cuotas = ${ratioDeuda.toFixed(0)}% de ingresos`, texto:`Estás destinando ${fmt(cuotasMes)}/mes en cuotas. El límite saludable es 30%. Prioriza cancelar el crédito ****6347 (5 cuotas restantes).` });
-                if (topCat) {
-                  const [cat,total] = topCat;
-                  const pres = presupuestos.find(p=>p.categoria===cat);
-                  if (!pres)
-                    tips.push({ color:'#7c3aed', bg:'#f5f3ff', border:'#ddd6fe', Icon:Target, titulo:`Sin presupuesto: ${cat}`, texto:`Es tu mayor gasto (${fmt(total)}) y no tiene límite asignado. Ve a Metas y crea un presupuesto para controlarlo.` });
-                }
-                if (prestamos.find(p=>p.cuotaActual>=p.totalCuotas-5&&p.cuotaActual>0))
-                  tips.push({ color:'#10b981', bg:'#f0fdf4', border:'#bbf7d0', Icon:CheckCircle, titulo:'Casi terminas un crédito', texto:`El crédito ****6347 solo tiene 5 cuotas restantes (${fmt(272.28*5)} en total). Al terminar tendrás ${fmt(272.28)} extra libre por mes.` });
+                const fechas = [
+                  { label:'Cierre TC', fecha:ciclo.cierreHasta, dias:diasCierre, color:urgC, Icon:Receipt, sub:'Último día para consumir este ciclo' },
+                  { label:'Pago TC', fecha:ciclo.limitePago, dias:diasPago, color:urgP, Icon:CreditCard, sub:'Fecha límite de pago VISA BCP' },
+                  ...prestamos.filter(p=>p.capitalPendiente>0).map(p=>{
+                    const d = Math.ceil((new Date(p.proximoPago)-hoy)/(1000*60*60*24));
+                    return { label:`Cuota ${p.numero}`, fecha:fmtFecha(p.proximoPago), dias:d, color:d<=3?'#ef4444':d<=10?'#f59e0b':'#10b981', Icon:Landmark, sub:`${fmt(p.cuotaMensual)} · Cuota ${p.cuotaActual+1}/${p.totalCuotas}` };
+                  }),
+                ];
 
-                if (tips.length === 0) return null;
                 return (
                   <div style={{background:'#fff',borderRadius:20,padding:'16px',marginBottom:14,boxShadow:'0 2px 12px rgba(0,0,0,0.05)'}}>
-                    <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12}}>
-                      <div style={{width:32,height:32,borderRadius:10,background:'#fef3c7',display:'flex',alignItems:'center',justifyContent:'center'}}><Banknote size={16} color="#d97706"/></div>
-                      <div style={S.secTitle}>Recomendaciones</div>
+                    <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:14}}>
+                      <div style={{width:32,height:32,borderRadius:10,background:'#ede9fe',display:'flex',alignItems:'center',justifyContent:'center'}}><Calendar size={16} color="#7c3aed"/></div>
+                      <div style={S.secTitle}>Fechas importantes</div>
                     </div>
-                    {tips.map((t,i)=>(
-                      <div key={i} style={{background:t.bg,border:`1px solid ${t.border}`,borderRadius:14,padding:'12px 14px',marginBottom:i<tips.length-1?10:0}}>
-                        <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
-                          <t.Icon size={15} color={t.color}/>
-                          <span style={{fontSize:13,fontWeight:700,color:t.color}}>{t.titulo}</span>
+                    {fechas.map((f,i)=>(
+                      <div key={i} style={{display:'flex',alignItems:'center',gap:12,padding:'10px 0',borderBottom:i<fechas.length-1?'1px solid #f5f3ff':'none'}}>
+                        <div style={{width:38,height:38,borderRadius:12,background:f.color+'15',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                          <f.Icon size={17} color={f.color}/>
                         </div>
-                        <div style={{fontSize:12,color:'#374151',lineHeight:1.6}}>{t.texto}</div>
+                        <div style={{flex:1}}>
+                          <div style={{fontSize:13,fontWeight:700,color:'#1f1b4b'}}>{f.label}</div>
+                          <div style={{fontSize:11,color:'#9ca3af',marginTop:1}}>{f.sub}</div>
+                        </div>
+                        <div style={{textAlign:'right',flexShrink:0}}>
+                          <div style={{fontSize:14,fontWeight:800,color:f.color}}>{f.fecha}</div>
+                          <div style={{fontSize:11,fontWeight:600,color:f.color,marginTop:1}}>
+                            {f.dias===0?'Hoy':f.dias===1?'Mañana':`${f.dias} días`}
+                          </div>
+                        </div>
                       </div>
                     ))}
                   </div>
                 );
               })()}
 
-              {/* ── Proyección si pagas mínimo TC ── */}
-              {tcs.length > 0 && (() => {
-                const tc = tcs[0];
-                const meses = 21;
-                const totalPagar = tc.deudaActual + 164 + 40.32;
-                return (
-                  <div style={{background:'linear-gradient(135deg,#7f1d1d,#991b1b)',borderRadius:20,padding:'16px',marginBottom:14,boxShadow:'0 4px 20px rgba(127,29,29,0.3)'}}>
-                    <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
-                      <Clock size={15} color="rgba(255,255,255,0.7)"/>
-                      <span style={{color:'rgba(255,255,255,0.7)',fontSize:11,fontWeight:700,textTransform:'uppercase',letterSpacing:0.5}}>Si pagas solo el mínimo TC</span>
-                    </div>
-                    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:8}}>
-                      {[{l:'Tiempo',v:`${meses} meses`},{l:'En intereses',v:'S/ 164'},{l:'Total real',v:fmt(totalPagar)}].map(s=>(
-                        <div key={s.l} style={{background:'rgba(255,255,255,0.1)',borderRadius:12,padding:'10px 8px',textAlign:'center'}}>
-                          <div style={{color:'rgba(255,255,255,0.5)',fontSize:9,textTransform:'uppercase',marginBottom:4}}>{s.l}</div>
-                          <div style={{color:'#fca5a5',fontSize:13,fontWeight:800}}>{s.v}</div>
-                        </div>
-                      ))}
-                    </div>
-                    <div style={{marginTop:10,background:'rgba(255,255,255,0.15)',borderRadius:10,padding:'8px 12px',fontSize:11,color:'rgba(255,255,255,0.8)',lineHeight:1.5}}>
-                      Pagar el total el 21/08 te ahorra S/ 204.32 y liquida tu deuda inmediatamente.
-                    </div>
+              {/* ── Solo si casi termina un crédito ── */}
+              {prestamos.find(p=>p.cuotaActual>=p.totalCuotas-5&&p.cuotaActual>0) && (
+                <div style={{background:'#f0fdf4',border:'1.5px solid #bbf7d0',borderRadius:20,padding:'16px',marginBottom:14}}>
+                  <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
+                    <CheckCircle size={16} color="#16a34a"/>
+                    <span style={{fontSize:14,fontWeight:700,color:'#16a34a'}}>¡Casi terminas un crédito!</span>
                   </div>
-                );
-              })()}
+                  <div style={{fontSize:13,color:'#166534',lineHeight:1.6}}>
+                    El crédito ****6347 tiene solo 5 cuotas restantes. Al terminar tendrás <strong>S/ 272.28 extra libre por mes</strong>.
+                  </div>
+                </div>
+              )}
 
             </div>
           </div>
