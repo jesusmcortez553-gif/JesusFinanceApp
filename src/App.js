@@ -29,9 +29,10 @@ const CAT_ICONOS = {
   'Freelance':       { icon: Monitor,      color: '#0d9488' },
   'Inversión':       { icon: TrendingUp,   color: '#0891b2' },
   'Regalo':          { icon: Gift,         color: '#7c3aed' },
+  'Disposición TC':  { icon: CreditCard,   color: '#dc2626' },
 };
 const CATS_GASTO   = ['Alimentación','Transporte','Servicios','Salud','Entretenimiento','Ropa','Educación','Hogar','Mascotas','Otros'];
-const CATS_INGRESO = ['Salario','Negocio','Freelance','Inversión','Regalo','Otros'];
+const CATS_INGRESO = ['Salario','Negocio','Freelance','Inversión','Disposición TC','Regalo','Otros'];
 const MESES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 
 // ─── DICCIONARIO PERUANO ──────────────────────────────────────────────────────
@@ -101,6 +102,11 @@ const DICCIONARIO = {
     'vacun perr','baño mascot','peluquer mascot','correa','arena gat',
   ],
 };
+
+// ─── PALABRAS SALARIO ────────────────────────────────────────────────────────
+const PALABRAS_SALARIO = ['salari','sueldo','quincena','planilla','remuneracion','pago mensual','deposito sueldo','abono sueldo'];
+const PALABRAS_DISPOSICION = ['disposicion','disposición','dispos efectivo','retiro tc','avance efectivo','avance tc','retiro tarjeta'];
+const PALABRAS_PAGO_TC = ['pago tc','pago tarjet','pago visa','pago credito tc','abono tarjet','cancelar tarjet'];
 
 // ─── PALABRAS NOCTURNAS ───────────────────────────────────────────────────────
 const PALABRAS_NOCTURNAS = [
@@ -238,12 +244,36 @@ const INITIAL_PRESTAMOS = [
 const fmt      = (n) => new Intl.NumberFormat('es-PE',{style:'currency',currency:'PEN',minimumFractionDigits:2}).format(n);
 const fmtShort = (n) => n >= 1000 ? `S/${(n/1000).toFixed(1)}k` : `S/${Math.round(n)}`;
 const fmtInt   = (n) => new Intl.NumberFormat('es-PE',{style:'currency',currency:'PEN',minimumFractionDigits:0}).format(n);
+const fmtFecha = (fechaStr) => { if(!fechaStr) return ''; const [y,m,d] = fechaStr.split('-'); return `${d}/${m}/${y.slice(2)}`; };
+const fmtDiaMes = (dia, mes) => { const mm = String(mes).padStart(2,'0'); const dd = String(dia).padStart(2,'0'); return `${dd}/${mm}`; };
 
 // ─── DÍAS HASTA VENCIMIENTO ───────────────────────────────────────────────────
 const diasHasta = (fechaStr) => {
-  const hoy = new Date('2026-05-31');
+  const hoy = new Date();
+  hoy.setHours(0,0,0,0);
   const fecha = new Date(fechaStr);
   return Math.ceil((fecha - hoy) / (1000*60*60*24));
+};
+
+// ─── ALERTAS TC (facturación y pago) ─────────────────────────────────────────
+const alertaTC = (tc) => {
+  const hoy = new Date();
+  const diaHoy = hoy.getDate();
+  const mesHoy = hoy.getMonth() + 1;
+  // Días hasta cierre de facturación
+  const cierreDate = new Date(hoy.getFullYear(), tc.mesFacturacion - 1, tc.fechaFacturacion);
+  if (cierreDate < hoy) cierreDate.setMonth(cierreDate.getMonth() + 1);
+  const diasCierre = Math.ceil((cierreDate - hoy) / (1000*60*60*24));
+  // Días hasta límite de pago
+  const pagoDate = new Date(hoy.getFullYear(), tc.mesPago - 1, tc.fechaPago);
+  if (pagoDate < hoy) pagoDate.setMonth(pagoDate.getMonth() + 1);
+  const diasPago = Math.ceil((pagoDate - hoy) / (1000*60*60*24));
+  const alertas = [];
+  if (diasCierre <= 3 && diasCierre >= 0)
+    alertas.push({ tipo:'cierre', dias:diasCierre, msg: diasCierre===0 ? `Tu TC cierra HOY — todo lo que consumas se factura este mes` : `Tu TC cierra en ${diasCierre} día${diasCierre>1?'s':''} — lo que consumas ahora se factura este ciclo`, color:'#d97706', bg:'#fffbeb', border:'#fde68a' });
+  if (diasPago <= 3 && diasPago >= 0)
+    alertas.push({ tipo:'pago', dias:diasPago, msg: diasPago===0 ? `Fecha límite de pago TC es HOY` : `Tu pago de TC vence en ${diasPago} día${diasPago>1?'s':''}`, color:'#dc2626', bg:'#fef2f2', border:'#fecaca' });
+  return alertas;
 };
 
 const urgenciaColor = (dias) => {
@@ -368,7 +398,7 @@ const TarjetaVisual = ({ tc }) => {
               <Receipt size={12} color="#7c3aed"/>
               <span style={{fontSize:10,color:'#9ca3af',fontWeight:600,textTransform:'uppercase',letterSpacing:0.3}}>Facturación</span>
             </div>
-            <div style={{fontSize:14,fontWeight:800,color:'#1f1b4b'}}>26/06 – 25/07</div>
+            <div style={{fontSize:14,fontWeight:800,color:'#1f1b4b'}}>{fmtDiaMes(tc.fechaFacturacion,tc.mesFacturacion)} – {fmtDiaMes(25,7)}</div>
             <div style={{fontSize:11,color:'#9ca3af',marginTop:2}}>Ciclo activo</div>
           </div>
           <div style={{background:urg.bg,borderRadius:12,padding:'10px 12px',border:`1px solid ${urg.border}`}}>
@@ -376,7 +406,7 @@ const TarjetaVisual = ({ tc }) => {
               <Calendar size={12} color={urg.badge}/>
               <span style={{fontSize:10,color:urg.text,fontWeight:600,textTransform:'uppercase',letterSpacing:0.3}}>Límite pago</span>
             </div>
-            <div style={{fontSize:14,fontWeight:800,color:urg.text}}>{tc.fechaPago}/{String(tc.mesPago).padStart(2,'0')}</div>
+            <div style={{fontSize:14,fontWeight:800,color:urg.text}}>{fmtDiaMes(tc.fechaPago,tc.mesPago)}/26</div>
             <div style={{fontSize:11,color:urg.text,marginTop:2,fontWeight:600}}>
               {diasVence > 0 ? `${diasVence} días` : 'Vencido'}
             </div>
@@ -454,7 +484,7 @@ const PrestamoCard = ({ prestamo, onEdit, onDelete }) => {
         </div>
         <div style={{background:urg.bg,border:`1px solid ${urg.border}`,borderRadius:12,padding:'10px'}}>
           <div style={{fontSize:10,color:urg.text,marginBottom:3,fontWeight:600}}>Próximo pago</div>
-          <div style={{fontSize:13,fontWeight:800,color:urg.text}}>{prestamo.proximoPago.split('-').slice(1).reverse().join('/')}</div>
+          <div style={{fontSize:13,fontWeight:800,color:urg.text}}>{fmtFecha(prestamo.proximoPago)}</div>
           <div style={{fontSize:10,color:urg.text,marginTop:1}}>{diasV>0?`${diasV} días`:'Vencido'}</div>
         </div>
       </div>
@@ -581,7 +611,7 @@ export default function App() {
   const [txs, setTxs]         = useState(INITIAL_TX);
   const [presupuestos, setPresupuestos] = useState(INITIAL_PRESUPUESTOS);
   const [metas, setMetas]     = useState(INITIAL_METAS);
-  const [tcs]                 = useState(INITIAL_TC);
+  const [tcs, setTcs]         = useState(INITIAL_TC);
   const [prestamos, setPrestamos] = useState(INITIAL_PRESTAMOS);
   const [chartPeriod, setChartPeriod] = useState('día');
   const [showAll, setShowAll] = useState(false);
@@ -590,9 +620,14 @@ export default function App() {
   // Formulario TX
   const [txForm, setTxForm]     = useState({ tipo:'gasto', categoria:'Alimentación', descripcion:'', monto:'', fecha:new Date().toISOString().split('T')[0] });
   const [txEditId, setTxEditId] = useState(null);
-  const [autoClasif, setAutoClasif] = useState(null);   // { categoria, confianza }
-  const [alertaEmoc, setAlertaEmoc] = useState(null);   // { msg, color, bg, border }
+  const [autoClasif, setAutoClasif] = useState(null);
+  const [alertaEmoc, setAlertaEmoc] = useState(null);
   const [alertaAceptada, setAlertaAceptada] = useState(false);
+  const [tipoEspecial, setTipoEspecial] = useState(null); // 'salario' | 'disposicion' | 'pagoTC'
+  const [pagoTCMonto, setPagoTCMonto]   = useState('');
+  const [pagoTCId, setPagoTCId]         = useState(null);
+  const [showResumenSalario, setShowResumenSalario] = useState(false);
+  const [resumenSalario, setResumenSalario]         = useState(null);
 
   // Formulario presupuestos
   const [presForm, setPresForm]     = useState({ categoria:'Alimentación', limite:'' });
@@ -639,14 +674,22 @@ export default function App() {
   const ib_ = (e) => { e.target.style.borderColor='#f0eeff'; };
 
   const handleDescChange = (valor) => {
+    const texto = valor.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    // Detectar tipo especial
+    const esSalario     = PALABRAS_SALARIO.some(p=>texto.includes(p));
+    const esDisposicion = PALABRAS_DISPOSICION.some(p=>texto.includes(p));
+    const esPagoTC      = PALABRAS_PAGO_TC.some(p=>texto.includes(p));
     setTxForm(f=>({...f, descripcion:valor}));
-    if (txForm.tipo === 'gasto') {
+    setTipoEspecial(esSalario?'salario':esDisposicion?'disposicion':esPagoTC?'pagoTC':null);
+    if (txForm.tipo === 'gasto' && !esDisposicion && !esPagoTC) {
       const result = clasificarGasto(valor);
       setAutoClasif(result);
-      // NO pre-selecciona aún — espera a que el usuario elija o confirme
       const alerta = detectarAlerta(valor);
       setAlertaEmoc(alerta);
       setAlertaAceptada(false);
+    } else {
+      setAutoClasif(null);
+      setAlertaEmoc(null);
     }
   };
 
@@ -657,18 +700,66 @@ export default function App() {
 
   const handleTxSubmit = () => {
     if(!txForm.descripcion||!txForm.monto) return;
-    // Si hay alerta emocional y no fue aceptada, primer toque = advertencia
     if(alertaEmoc && !alertaAceptada) { setAlertaAceptada(true); return; }
-    // Aplica categoría automática si el user no eligió manualmente
-    let categoriaFinal = txForm.categoria;
-    if (txForm.tipo === 'gasto' && autoClasif && !autoClasif.elegida) {
-      categoriaFinal = autoClasif.categoria;
+
+    const monto = parseFloat(txForm.monto);
+    const fecha = txForm.fecha;
+    const nuevasTx = [];
+
+    // ── FLUJO SALARIO: descuenta cuotas automáticamente ──
+    if (tipoEspecial === 'salario' && txForm.tipo === 'ingreso') {
+      // 1. Registra el ingreso del salario
+      nuevasTx.push({ ...txForm, id:Date.now(), monto, categoria:'Salario' });
+      // 2. Descuenta cuotas de préstamos activos
+      const cuotasDescontadas = [];
+      setPrestamos(prev => prev.map(p => {
+        if (p.capitalPendiente > 0) {
+          cuotasDescontadas.push({ nombre: p.nombre+' '+p.numero, monto: p.cuotaMensual });
+          nuevasTx.push({ id:Date.now()+p.id, tipo:'gasto', categoria:'Servicios', descripcion:`Cuota ${p.nombre} ${p.numero}`, monto:p.cuotaMensual, fecha });
+          return { ...p, capitalPendiente: Math.max(0, p.capitalPendiente - p.cuotaMensual), pagado: p.pagado + p.cuotaMensual, cuotaActual: p.cuotaActual + 1 };
+        }
+        return p;
+      }));
+      const totalDesc = cuotasDescontadas.reduce((s,c)=>s+c.monto,0);
+      setResumenSalario({ ingreso:monto, cuotas:cuotasDescontadas, total:totalDesc });
+      setShowResumenSalario(true);
+      setTxs(p=>[...p,...nuevasTx]);
+      setTxForm({tipo:'ingreso',categoria:'Salario',descripcion:'',monto:'',fecha:new Date().toISOString().split('T')[0]});
+      setTipoEspecial(null); setAutoClasif(null); setAlertaEmoc(null); setAlertaAceptada(false);
+      return;
     }
-    const txFinal = {...txForm, categoria: categoriaFinal, monto: parseFloat(txForm.monto)};
+
+    // ── FLUJO DISPOSICIÓN TC: registra ingreso + sube deuda TC ──
+    if (tipoEspecial === 'disposicion') {
+      nuevasTx.push({ ...txForm, id:Date.now(), tipo:'ingreso', monto, categoria:'Disposición TC' });
+      nuevasTx.push({ id:Date.now()+1, tipo:'gasto', categoria:'Servicios', descripcion:'Interés disposición TC', monto:0, fecha });
+      setTcs(prev => prev.map((tc,i) => i===0 ? { ...tc, consumido: tc.consumido + monto, deudaActual: tc.deudaActual + monto } : tc));
+      setTxs(p=>[...p,...nuevasTx]);
+      setTxForm({tipo:'gasto',categoria:'Alimentación',descripcion:'',monto:'',fecha:new Date().toISOString().split('T')[0]});
+      setTipoEspecial(null); setAutoClasif(null); setAlertaEmoc(null); setAlertaAceptada(false);
+      setTab('home');
+      return;
+    }
+
+    // ── FLUJO PAGO TC: descuenta consumido de la TC ──
+    if (tipoEspecial === 'pagoTC') {
+      setTcs(prev => prev.map((tc,i) => i===0 ? { ...tc, consumido: Math.max(0, tc.consumido - monto), deudaActual: Math.max(0, tc.deudaActual - monto) } : tc));
+      nuevasTx.push({ ...txForm, id:Date.now(), monto, categoria:'Servicios', descripcion:'Pago tarjeta de crédito' });
+      setTxs(p=>[...p,...nuevasTx]);
+      setTxForm({tipo:'gasto',categoria:'Alimentación',descripcion:'',monto:'',fecha:new Date().toISOString().split('T')[0]});
+      setTipoEspecial(null); setAutoClasif(null); setAlertaEmoc(null); setAlertaAceptada(false);
+      setTab('home');
+      return;
+    }
+
+    // ── FLUJO NORMAL ──
+    let categoriaFinal = txForm.categoria;
+    if (txForm.tipo === 'gasto' && autoClasif && !autoClasif.elegida) categoriaFinal = autoClasif.categoria;
+    const txFinal = {...txForm, categoria:categoriaFinal, monto};
     if(txEditId){setTxs(p=>p.map(t=>t.id===txEditId?{...txFinal,id:txEditId}:t));setTxEditId(null);}
-    else setTxs(p=>[...p,{...txFinal,id:Date.now()}]);
+    else setTxs(p=>[...p,txFinal]);
     setTxForm({tipo:'gasto',categoria:'Alimentación',descripcion:'',monto:'',fecha:new Date().toISOString().split('T')[0]});
-    setAutoClasif(null); setAlertaEmoc(null); setAlertaAceptada(false);
+    setTipoEspecial(null); setAutoClasif(null); setAlertaEmoc(null); setAlertaAceptada(false);
     setTab('home');
   };
   const openAdd      = () => { setTxEditId(null); setAutoClasif(null); setAlertaEmoc(null); setAlertaAceptada(false); setTxForm({tipo:'gasto',categoria:'Alimentación',descripcion:'',monto:'',fecha:new Date().toISOString().split('T')[0]}); setTab('agregar'); };
@@ -733,6 +824,14 @@ export default function App() {
             </div>
           )}
 
+          {/* Alertas TC facturación y pago */}
+          {tcs.flatMap(tc=>alertaTC(tc)).map((a,i)=>(
+            <div key={i} style={{margin:'8px 16px 0',background:a.bg,border:`1px solid ${a.border}`,borderRadius:14,padding:'10px 14px',display:'flex',alignItems:'center',gap:10}}>
+              <Calendar size={16} color={a.color}/>
+              <div style={{flex:1}}><span style={{fontSize:12,fontWeight:700,color:a.color}}>{a.msg}</span></div>
+            </div>
+          ))}
+
           {/* Alerta vencimientos próximos */}
           {proximosVenc.filter(v=>diasHasta(v.fecha)<=10).map((v,i)=>(
             <div key={i} style={{margin:'8px 16px 0',background:'#fef2f2',border:'1px solid #fecaca',borderRadius:14,padding:'10px 14px',display:'flex',alignItems:'center',gap:10}}>
@@ -789,7 +888,7 @@ export default function App() {
               {recentTxs.map((t,i)=>{ const info=CAT_ICONOS[t.categoria]||{icon:Package,color:'#6b7280'}; const Icon=info.icon; return (
                 <div key={t.id} style={S.txItem(i===recentTxs.length-1)}>
                   <div style={S.txIconWrap(info.color)}><Icon size={17} color={info.color}/></div>
-                  <div style={{flex:1,minWidth:0}}><div style={S.txName}>{t.descripcion}</div><div style={S.txMeta}>{t.categoria}·{t.fecha}</div></div>
+                  <div style={{flex:1,minWidth:0}}><div style={S.txName}>{t.descripcion}</div><div style={S.txMeta}>{t.categoria} · {fmtFecha(t.fecha)}</div></div>
                   <div style={S.txAmt(t.tipo)}>{t.tipo==='ingreso'?'+':'-'}{fmtInt(t.monto)}</div>
                   <button onClick={()=>handleTxEdit(t)} style={S.actionBtn('#f5f3ff')}><Pencil size={13} color="#7c3aed"/></button>
                   <button onClick={()=>handleTxDel(t.id)} style={S.actionBtn('#fef2f2')}><Trash2 size={13} color="#ef4444"/></button>
@@ -911,10 +1010,48 @@ export default function App() {
                 </div>
               )}
 
-              <button style={{...S.submitBtn, background: alertaEmoc && !alertaAceptada ? `linear-gradient(135deg,${alertaEmoc.color},${alertaEmoc.color}cc)` : 'linear-gradient(135deg,#7c3aed,#4f46e5)'}}
+              {/* BANNER TIPO ESPECIAL */}
+              {tipoEspecial === 'salario' && (
+                <div style={{background:'#f0fdf4',border:'1.5px solid #86efac',borderRadius:14,padding:'12px 14px',marginBottom:12}}>
+                  <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
+                    <CheckCircle size={15} color="#16a34a"/>
+                    <span style={{fontSize:13,fontWeight:700,color:'#16a34a'}}>Salario detectado</span>
+                  </div>
+                  <div style={{fontSize:12,color:'#166534',lineHeight:1.5}}>
+                    Al registrar, se descontarán automáticamente:<br/>
+                    <strong>Crédito ****6347</strong> — S/ 272.28<br/>
+                    <strong>Crédito ****6069</strong> — S/ 103.90
+                  </div>
+                </div>
+              )}
+              {tipoEspecial === 'disposicion' && (
+                <div style={{background:'#fef2f2',border:'1.5px solid #fecaca',borderRadius:14,padding:'12px 14px',marginBottom:12}}>
+                  <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
+                    <AlertTriangle size={15} color="#dc2626"/>
+                    <span style={{fontSize:13,fontWeight:700,color:'#dc2626'}}>Disposición de efectivo</span>
+                  </div>
+                  <div style={{fontSize:12,color:'#991b1b',lineHeight:1.5}}>
+                    Se registrará como ingreso y subirá tu deuda en la VISA BCP.<br/>
+                    <strong>TEA: 87.50%</strong> — intereses desde el primer día.
+                  </div>
+                </div>
+              )}
+              {tipoEspecial === 'pagoTC' && (
+                <div style={{background:'#eff6ff',border:'1.5px solid #bfdbfe',borderRadius:14,padding:'12px 14px',marginBottom:12}}>
+                  <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
+                    <CreditCard size={15} color="#1d4ed8"/>
+                    <span style={{fontSize:13,fontWeight:700,color:'#1d4ed8'}}>Pago de tarjeta detectado</span>
+                  </div>
+                  <div style={{fontSize:12,color:'#1e40af',lineHeight:1.5}}>
+                    El monto se descontará del consumido de tu VISA BCP ****2769.
+                  </div>
+                </div>
+              )}
+
+              <button style={{...S.submitBtn, background: alertaEmoc && !alertaAceptada ? `linear-gradient(135deg,${alertaEmoc.color},${alertaEmoc.color}cc)` : tipoEspecial==='disposicion' ? 'linear-gradient(135deg,#dc2626,#b91c1c)' : tipoEspecial==='salario' ? 'linear-gradient(135deg,#16a34a,#15803d)' : tipoEspecial==='pagoTC' ? 'linear-gradient(135deg,#1d4ed8,#1e40af)' : 'linear-gradient(135deg,#7c3aed,#4f46e5)'}}
                 onClick={handleTxSubmit}>
                 <Plus size={18}/>
-                {alertaEmoc && !alertaAceptada ? 'Soy consciente — continuar' : txEditId?'Guardar cambios':'Registrar'}
+                {alertaEmoc && !alertaAceptada ? 'Soy consciente — continuar' : tipoEspecial==='salario' ? 'Registrar salario + descontar cuotas' : tipoEspecial==='disposicion' ? 'Confirmar disposición' : tipoEspecial==='pagoTC' ? 'Registrar pago TC' : txEditId?'Guardar cambios':'Registrar'}
               </button>
 
             </div></div>
@@ -1275,6 +1412,40 @@ export default function App() {
                 );
               })()}
 
+            </div>
+          </div>
+        )}
+
+        {/* ══ MODAL RESUMEN SALARIO ══════════════════════════════════════════ */}
+        {showResumenSalario && resumenSalario && (
+          <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.5)',zIndex:300,display:'flex',alignItems:'flex-end',justifyContent:'center'}}>
+            <div style={{background:'#fff',borderRadius:'24px 24px 0 0',padding:'24px',width:'100%',maxWidth:420}}>
+              <div style={{textAlign:'center',marginBottom:16}}>
+                <div style={{width:50,height:50,borderRadius:'50%',background:'#dcfce7',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 10px'}}>
+                  <CheckCircle size={26} color="#16a34a"/>
+                </div>
+                <div style={{fontSize:18,fontWeight:800,color:'#1f1b4b'}}>¡Salario registrado!</div>
+                <div style={{fontSize:13,color:'#9ca3af',marginTop:4}}>Cuotas descontadas automáticamente</div>
+              </div>
+              <div style={{background:'#f9f8ff',borderRadius:16,padding:'14px',marginBottom:16}}>
+                <div style={{display:'flex',justifyContent:'space-between',marginBottom:10,paddingBottom:10,borderBottom:'1px solid #f0eeff'}}>
+                  <span style={{fontSize:13,color:'#9ca3af'}}>Salario ingresado</span>
+                  <span style={{fontSize:14,fontWeight:800,color:'#10b981'}}>+{fmt(resumenSalario.ingreso)}</span>
+                </div>
+                {resumenSalario.cuotas.map((c,i)=>(
+                  <div key={i} style={{display:'flex',justifyContent:'space-between',marginBottom:6}}>
+                    <span style={{fontSize:12,color:'#6b7280'}}>{c.nombre}</span>
+                    <span style={{fontSize:13,fontWeight:700,color:'#ef4444'}}>-{fmt(c.monto)}</span>
+                  </div>
+                ))}
+                <div style={{display:'flex',justifyContent:'space-between',marginTop:10,paddingTop:10,borderTop:'1px solid #f0eeff'}}>
+                  <span style={{fontSize:13,fontWeight:700,color:'#1f1b4b'}}>Neto disponible</span>
+                  <span style={{fontSize:15,fontWeight:800,color:'#7c3aed'}}>{fmt(resumenSalario.ingreso - resumenSalario.total)}</span>
+                </div>
+              </div>
+              <button style={{...S.submitBtn}} onClick={()=>{setShowResumenSalario(false);setTab('home');}}>
+                <CheckCircle size={18}/>Entendido
+              </button>
             </div>
           </div>
         )}
