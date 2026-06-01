@@ -443,16 +443,9 @@ const TarjetaVisual = ({ tc }) => {
             <span style={{fontSize:12,color:'#9ca3af',fontWeight:600}}>Deuda total facturada</span>
             <span style={{fontSize:16,fontWeight:800,color:'#ef4444'}}>{fmt(tc.deudaActual)}</span>
           </div>
-          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
-            <span style={{fontSize:12,color:'#9ca3af',fontWeight:600}}>TEA compras</span>
-            <span style={{fontSize:13,fontWeight:700,color:'#f97316'}}>{tc.tea}%</span>
-          </div>
-          {/* Alerta interés mínimo */}
-          <div style={{background:'#fffbeb',border:'1px solid #fde68a',borderRadius:12,padding:'10px 12px',display:'flex',gap:8,alignItems:'flex-start'}}>
-            <AlertTriangle size={14} color="#d97706" style={{flexShrink:0,marginTop:1}}/>
-            <div style={{fontSize:11,color:'#92400e',lineHeight:1.5}}>
-              Pago mínimo → 21 meses más + <strong>S/ 164 en intereses</strong> y S/ 40 en comisiones
-            </div>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:4}}>
+            <span style={{fontSize:12,color:'#9ca3af',fontWeight:600}}>Ciclo actual</span>
+            <span style={{fontSize:12,fontWeight:700,color:'#1f1b4b'}}>{getCicloActual().cierreDesde} – {getCicloActual().cierreHasta}</span>
           </div>
         </div>
       </div>
