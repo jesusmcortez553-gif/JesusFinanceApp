@@ -131,20 +131,49 @@ const MENSAJES_ALCOHOL = [
 ];
 
 // ─── MOTOR DE CLASIFICACIÓN ───────────────────────────────────────────────────
-const clasificarGasto = (descripcion) => {
+const clasificarGasto = (descripcion, monto = 0) => {
   if (!descripcion || descripcion.length < 2) return null;
   const texto = descripcion.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const hora  = new Date().getHours();
+  const esNocturno = hora >= 22 || hora <= 5;
+
+  // ── Capa 1: palabras clave base ──
   let mejorCat = null; let mejorScore = 0;
   for (const [cat, palabras] of Object.entries(DICCIONARIO)) {
     for (const palabra of palabras) {
       const p = palabra.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-      if (texto.includes(p)) {
-        if (p.length > mejorScore) { mejorScore = p.length; mejorCat = cat; }
+      if (texto.includes(p) && p.length > mejorScore) {
+        mejorScore = p.length; mejorCat = cat;
       }
     }
   }
-  const confianza = mejorScore >= 6 ? 'alta' : mejorScore >= 4 ? 'media' : 'baja';
-  return mejorCat ? { categoria: mejorCat, confianza, score: mejorScore } : null;
+
+  // ── Capa 2: ajuste por horario nocturno ──
+  if (esNocturno && mejorCat === 'Alimentación') {
+    // Monto alto de noche → probablemente entretenimiento
+    const montoN = parseFloat(monto) || 0;
+    const esMontoAlto = montoN >= 15;
+    // Palabras que de noche cambian de categoría
+    const palabrasAmbiguas = ['agua','gaseosa','jugo','bebida','trago','botella'];
+    const tieneAmbigua = palabrasAmbiguas.some(p => texto.includes(p));
+    if (esMontoAlto || tieneAmbigua) {
+      mejorCat = 'Entretenimiento';
+      mejorScore = mejorScore + 2; // boost para indicar ajuste nocturno
+    }
+  }
+
+  // ── Capa 3: contexto combinado ──
+  const contextosEntret = ['discotec','disco','bar','karaoke','after','fiesta','previa','boliche','pub'];
+  const contextosAlim   = ['bodega','mercado','tambo','mass','listo','restaur','sanguch','menu'];
+  const tieneContextoEntret = contextosEntret.some(p => texto.includes(p));
+  const tieneContextoAlim   = contextosAlim.some(p => texto.includes(p));
+
+  if (tieneContextoEntret) mejorCat = 'Entretenimiento';
+  if (tieneContextoAlim && !tieneContextoEntret) mejorCat = 'Alimentación';
+
+  const confianza = mejorScore >= 8 ? 'alta' : mejorScore >= 5 ? 'media' : 'baja';
+  const ajustado  = esNocturno && mejorCat === 'Entretenimiento';
+  return mejorCat ? { categoria: mejorCat, confianza, score: mejorScore, ajustado } : null;
 };
 
 // ─── DETECTAR ALERTA EMOCIONAL ────────────────────────────────────────────────
@@ -177,6 +206,26 @@ const INITIAL_PRESUPUESTOS = [
   { id:3, categoria:'Entretenimiento', limite:100 },
   { id:4, categoria:'Servicios',       limite:200 },
 ];
+
+// ─── FASE C: PRESUPUESTOS SUGERIDOS ──────────────────────────────────────────
+const generarSugerencias = (txs, presupuestosActivos) => {
+  const gastoPorCat = {};
+  const countPorCat = {};
+  txs.filter(t => t.tipo === 'gasto').forEach(t => {
+    gastoPorCat[t.categoria] = (gastoPorCat[t.categoria]||0) + t.monto;
+    countPorCat[t.categoria] = (countPorCat[t.categoria]||0) + 1;
+  });
+  if (txs.filter(t=>t.tipo==='gasto').length < 5) return [];
+  return Object.entries(gastoPorCat)
+    .filter(([cat]) => !presupuestosActivos.find(p => p.categoria === cat))
+    .sort((a,b) => b[1]-a[1])
+    .slice(0,3)
+    .map(([cat, total]) => ({
+      categoria: cat,
+      sugerido: Math.ceil(total * 1.1 / 10) * 10,
+      basadoEn: countPorCat[cat],
+    }));
+};
 const INITIAL_METAS = [
   { id:1, nombre:'Fondo de emergencia', objetivo:5000, actual:1200, color:'#6366f1' },
   { id:2, nombre:'Vacaciones',          objetivo:2000, actual:650,  color:'#10b981' },
@@ -636,7 +685,6 @@ export default function App() {
 
   // Formulario TX
   const hoy = new Date().toISOString().split('T')[0];
-  const ayer = new Date(Date.now()-86400000).toISOString().split('T')[0];
   const [txForm, setTxForm]     = useState({ tipo:'gasto', categoria:'Alimentación', descripcion:'', monto:'', fecha:hoy });
   const [txEditId, setTxEditId] = useState(null);
   const [autoClasif, setAutoClasif] = useState(null);
@@ -653,6 +701,7 @@ export default function App() {
   const [presForm, setPresForm]     = useState({ categoria:'Alimentación', limite:'' });
   const [presEditId, setPresEditId] = useState(null);
   const [showPresForm, setShowPresForm] = useState(false);
+  const [sugerenciasDescartadas, setSugerenciasDescartadas] = useState(false);
 
   // Formulario metas
   const [metaForm, setMetaForm]     = useState({ nombre:'', objetivo:'', actual:'', color:'#6366f1' });
@@ -727,7 +776,7 @@ export default function App() {
       setAutoClasif(result);
       if (result) setTxForm(f=>({...f, descripcion:valor, categoria:result.categoria}));
     } else if (txForm.tipo === 'gasto' && !esDisposicion && !esPagoTC) {
-      const result = clasificarGasto(valor);
+      const result = clasificarGasto(valor, txForm.monto);
       setAutoClasif(result);
       const alerta = detectarAlerta(valor);
       setAlertaEmoc(alerta);
@@ -987,7 +1036,7 @@ export default function App() {
                     {autoClasif && (
                       <div style={{fontSize:11,color:'#9ca3af',marginBottom:8,display:'flex',alignItems:'center',gap:5}}>
                         <CheckCircle size={11} color="#10b981"/>
-                        Detecté <strong style={{color:'#1f1b4b'}}>{autoClasif.categoria}</strong> — toca para confirmar u elige otra
+                        Detecté <strong style={{color:'#1f1b4b'}}>{autoClasif.categoria}</strong>{autoClasif.ajustado?' · ajustado por horario nocturno':''} — toca para confirmar u elige otra
                       </div>
                     )}
                     {!autoClasif && (
@@ -1261,6 +1310,44 @@ export default function App() {
                   <div style={{display:'flex',justifyContent:'space-between',marginTop:6}}><span style={{color:'rgba(255,255,255,0.7)',fontSize:11}}>{fmtInt(gastado)} gastado</span><span style={{color:'rgba(255,255,255,0.7)',fontSize:11}}>{fmtInt(total-gastado)} libre</span></div>
                 </div>
               ); })()}
+
+              {/* ── FASE C: Sugerencias automáticas ── */}
+              {(()=>{
+                const sugs = generarSugerencias(txs, presupuestos);
+                if (sugs.length===0 || sugerenciasDescartadas) return null;
+                return (
+                  <div style={{background:'linear-gradient(135deg,#0f766e,#0d9488)',borderRadius:18,padding:'16px',marginBottom:14,boxShadow:'0 4px 20px rgba(13,148,136,0.2)'}}>
+                    <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
+                      <TrendingUp size={15} color="rgba(255,255,255,0.8)"/>
+                      <span style={{color:'#fff',fontSize:13,fontWeight:800}}>Presupuestos sugeridos</span>
+                    </div>
+                    <div style={{color:'rgba(255,255,255,0.7)',fontSize:11,marginBottom:12,lineHeight:1.5}}>Basado en tus últimos gastos, te sugiero estos límites:</div>
+                    {sugs.map((s,i)=>{
+                      const info=CAT_ICONOS[s.categoria]||{icon:Package,color:'#6b7280'}; const Icon=info.icon;
+                      return (
+                        <div key={i} style={{display:'flex',alignItems:'center',gap:10,background:'rgba(255,255,255,0.15)',borderRadius:12,padding:'10px 12px',marginBottom:8}}>
+                          <div style={{width:32,height:32,borderRadius:10,background:'rgba(255,255,255,0.2)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><Icon size={15} color="#fff"/></div>
+                          <div style={{flex:1}}>
+                            <div style={{color:'#fff',fontSize:12,fontWeight:700}}>{s.categoria}</div>
+                            <div style={{color:'rgba(255,255,255,0.6)',fontSize:10}}>basado en {s.basadoEn} gastos</div>
+                          </div>
+                          <div style={{color:'#fff',fontSize:14,fontWeight:800}}>S/ {s.sugerido}</div>
+                        </div>
+                      );
+                    })}
+                    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginTop:4}}>
+                      <button onClick={()=>{sugs.forEach(s=>setPresupuestos(prev=>[...prev,{id:Date.now()+Math.random(),categoria:s.categoria,limite:s.sugerido}]));setSugerenciasDescartadas(true);}}
+                        style={{padding:'10px',borderRadius:12,border:'none',background:'#fff',color:'#0f766e',fontWeight:800,fontSize:13,fontFamily:'inherit',cursor:'pointer'}}>
+                        ✓ Activar todos
+                      </button>
+                      <button onClick={()=>setSugerenciasDescartadas(true)}
+                        style={{padding:'10px',borderRadius:12,border:'1.5px solid rgba(255,255,255,0.4)',background:'transparent',color:'rgba(255,255,255,0.8)',fontWeight:700,fontSize:13,fontFamily:'inherit',cursor:'pointer'}}>
+                        No por ahora
+                      </button>
+                    </div>
+                  </div>
+                );
+              })()}
 
               <div style={S.secHeader}>
                 <div style={S.secTitle}>Por categoría</div>
