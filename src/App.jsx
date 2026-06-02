@@ -710,6 +710,11 @@ export default function App() {
   const [abonarMetaId, setAbonarMetaId] = useState(null);
   const [abonarMonto, setAbonarMonto]   = useState('');
 
+  // FASE E — Saldo de cuenta
+  const [saldoCuenta, setSaldoCuenta] = useState(null); // null = no configurado
+  const [showSaldoSetup, setShowSaldoSetup] = useState(false);
+  const [saldoInput, setSaldoInput]   = useState('');
+
   // Formulario préstamo
   const [showPresForm2, setShowPresForm2] = useState(false);
   const [presForm2, setPresForm2] = useState({ nombre:'', banco:'', numero:'', montoOriginal:'', capitalPendiente:'', cuotaMensual:'', proximoPago:'', tea:'', tcea:'', totalCuotas:'', cuotaActual:'0', color:'#1d4ed8', automatico:false });
@@ -849,9 +854,17 @@ export default function App() {
     // ── FLUJO NORMAL ──
     let categoriaFinal = txForm.categoria;
     if (txForm.tipo === 'gasto' && autoClasif && !autoClasif.elegida) categoriaFinal = autoClasif.categoria;
-    // Si paga con TC → sube consumido, NO resta balance
+    // FASE E: Si paga con efectivo → descuenta del saldo
+    if (txForm.tipo === 'gasto' && medioPago === 'efectivo' && saldoCuenta !== null) {
+      setSaldoCuenta(prev => Math.max(0, prev - monto));
+    }
+    // Si paga con TC → sube consumido, NO resta saldo
     if (txForm.tipo === 'gasto' && medioPago === 'tc') {
       setTcs(prev => prev.map((tc,i) => i===0 ? { ...tc, consumido: tc.consumido + monto, deudaActual: tc.deudaActual + monto } : tc));
+    }
+    // Si es ingreso → suma al saldo
+    if (txForm.tipo === 'ingreso' && saldoCuenta !== null && tipoEspecial !== 'disposicion') {
+      setSaldoCuenta(prev => prev + monto);
     }
     const txFinal = {...txForm, categoria:categoriaFinal, monto, medioPago};
     if(txEditId){setTxs(p=>p.map(t=>t.id===txEditId?{...txFinal,id:txEditId}:t));setTxEditId(null);}
@@ -922,6 +935,21 @@ export default function App() {
               </div>
               <div style={S.balLabel}>Balance total</div>
               <div style={S.balAmount}>{fmtInt(stats.balance)}</div>
+              {saldoCuenta !== null && (
+                <div style={{display:'flex',alignItems:'center',gap:6,marginTop:8,background:'rgba(255,255,255,0.12)',borderRadius:12,padding:'6px 12px',width:'fit-content'}}>
+                  <Wallet size={13} color="rgba(255,255,255,0.7)"/>
+                  <span style={{color:'rgba(255,255,255,0.7)',fontSize:12}}>En cuenta: </span>
+                  <span style={{color:'#fff',fontSize:13,fontWeight:800}}>{fmt(saldoCuenta)}</span>
+                  <button onClick={()=>setShowSaldoSetup(true)} style={{background:'none',border:'none',cursor:'pointer',padding:0,marginLeft:2}}>
+                    <Pencil size={11} color="rgba(255,255,255,0.5)"/>
+                  </button>
+                </div>
+              )}
+              {saldoCuenta === null && (
+                <button onClick={()=>setShowSaldoSetup(true)} style={{marginTop:8,background:'rgba(255,255,255,0.12)',border:'1px dashed rgba(255,255,255,0.3)',borderRadius:12,padding:'6px 12px',color:'rgba(255,255,255,0.6)',fontSize:12,fontFamily:'inherit',cursor:'pointer',display:'flex',alignItems:'center',gap:5}}>
+                  <Plus size={12} color="rgba(255,255,255,0.6)"/> Agregar saldo de cuenta
+                </button>
+              )}
               <div style={S.pillRow}><button style={S.pill(true)}>Resumen</button><button style={S.pill(false)}>Mayo 2026</button></div>
             </div>
           </div>
@@ -1391,15 +1419,34 @@ export default function App() {
           </div>
         )}
 
-        {/* ══ STATS + FASE 4 ANÁLISIS INTELIGENTE ══════════════════════════ */}
+        {/* ══ STATS FASE D — ANÁLISIS CON CONCLUSIONES ════════════════════ */}
         {tab==='stats' && (
           <div>
             <div style={S.pageHeader('linear-gradient(135deg,#0f172a,#1e3a5f)')}>
               <div style={S.bubble(-40,'-40px',undefined,undefined,140,140,0.07)}/>
               <div style={S.pageTitle}>Análisis Inteligente</div>
-              <div style={S.pageSub}>Patrones y recomendaciones</div>
+              <div style={S.pageSub}>Lo que tus números te dicen</div>
             </div>
             <div style={{padding:'16px'}}>
+
+              {/* ── FASE E: Saldo en stats ── */}
+              {saldoCuenta !== null && (
+                <div style={{background:'linear-gradient(135deg,#1d4ed8,#0891b2)',borderRadius:20,padding:'16px',marginBottom:14,boxShadow:'0 4px 20px rgba(29,78,216,0.2)'}}>
+                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                    <div>
+                      <div style={{color:'rgba(255,255,255,0.6)',fontSize:11,textTransform:'uppercase',letterSpacing:0.5,marginBottom:4}}>Saldo disponible en cuenta</div>
+                      <div style={{color:'#fff',fontSize:32,fontWeight:800}}>{fmt(saldoCuenta)}</div>
+                      <div style={{color:'rgba(255,255,255,0.6)',fontSize:11,marginTop:4}}>
+                        {saldoCuenta < 200 ? '⚠️ Saldo bajo — considera reducir gastos' :
+                         saldoCuenta < 500 ? 'Saldo moderado' : '✓ Saldo saludable'}
+                      </div>
+                    </div>
+                    <button onClick={()=>setShowSaldoSetup(true)} style={{background:'rgba(255,255,255,0.15)',border:'none',borderRadius:12,padding:'8px 12px',color:'#fff',fontSize:12,fontFamily:'inherit',cursor:'pointer',display:'flex',alignItems:'center',gap:5}}>
+                      <Pencil size={13} color="#fff"/>Editar
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {/* ── Score financiero ── */}
               {(() => {
@@ -1534,7 +1581,79 @@ export default function App() {
                     <Bar dataKey="gastos"   fill="#7c3aed" radius={[4,4,0,0]} name="Gastos"/>
                   </BarChart>
                 </ResponsiveContainer>
+                {/* FASE D: Conclusión del gráfico */}
+                {barData.length >= 2 && (()=>{
+                  const ultimo = barData[barData.length-1];
+                  const anterior = barData[barData.length-2];
+                  const diffGasto = ultimo.gastos - (anterior?.gastos||0);
+                  const diffIngreso = ultimo.ingresos - (anterior?.ingresos||0);
+                  if (!ultimo.gastos) return null;
+                  return (
+                    <div style={{marginTop:10,background:'#f9f8ff',borderRadius:12,padding:'10px 12px'}}>
+                      <div style={{fontSize:12,color:'#1f1b4b',lineHeight:1.6}}>
+                        {diffGasto > 0
+                          ? <span>Gastas <strong style={{color:'#ef4444'}}>S/ {Math.abs(diffGasto).toFixed(0)} más</strong> que el mes pasado</span>
+                          : <span>Gastas <strong style={{color:'#10b981'}}>S/ {Math.abs(diffGasto).toFixed(0)} menos</strong> que el mes pasado</span>}
+                        {diffIngreso > 0 && <span> · Ingresos <strong style={{color:'#10b981'}}>+S/ {diffIngreso.toFixed(0)}</strong></span>}
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
+
+              {/* ── FASE D: Conclusiones inteligentes ── */}
+              {(()=>{
+                const insights = [];
+                const tasaAhorro = stats.ingresos>0?(stats.balance/stats.ingresos)*100:0;
+                const cuotasMes  = prestamos.reduce((s,p)=>s+p.cuotaMensual,0);
+                const topCat     = catData[0];
+                const gastosDiarios = txs.filter(t=>t.tipo==='gasto');
+                // Día de la semana con más gastos
+                const porDia = {0:0,1:0,2:0,3:0,4:0,5:0,6:0};
+                gastosDiarios.forEach(t=>{ const d=new Date(t.fecha).getDay(); porDia[d]=(porDia[d]||0)+t.monto; });
+                const diaMasGasto = Object.entries(porDia).sort((a,b)=>b[1]-a[1])[0];
+                const diasSemana = ['domingos','lunes','martes','miércoles','jueves','viernes','sábados'];
+
+                // Gastos con TC vs efectivo
+                const gastoTC = txs.filter(t=>t.tipo==='gasto'&&t.medioPago==='tc').reduce((s,t)=>s+t.monto,0);
+                const gastoEf = txs.filter(t=>t.tipo==='gasto'&&t.medioPago!=='tc').reduce((s,t)=>s+t.monto,0);
+                const pctTC   = stats.gastos>0?Math.round(gastoTC/stats.gastos*100):0;
+
+                if (tasaAhorro >= 20) insights.push({ color:'#10b981', bg:'#f0fdf4', border:'#bbf7d0', emoji:'🎯', titulo:`Ahorras el ${tasaAhorro.toFixed(1)}% de tus ingresos`, texto:`Estás por encima del 20% recomendado. Cada mes guardas ${fmt(stats.balance)} que trabajan para ti.` });
+                else if (tasaAhorro > 0) insights.push({ color:'#f59e0b', bg:'#fffbeb', border:'#fde68a', emoji:'📊', titulo:`Ahorro al ${tasaAhorro.toFixed(1)}%`, texto:`Para llegar al 20% recomendado necesitas ahorrar ${fmt(stats.ingresos*0.2)} al mes. Te faltan ${fmt(stats.ingresos*0.2-stats.balance)}.` });
+
+                if (topCat) insights.push({ color:'#7c3aed', bg:'#f5f3ff', border:'#ddd6fe', emoji:'🔍', titulo:`${topCat[0]} es tu mayor gasto`, texto:`Represents el ${Math.round(topCat[1]/stats.gastos*100)}% de tus gastos totales — equivale a ${fmt(topCat[1])} este mes.` });
+
+                if (diaMasGasto && porDia[diaMasGasto[0]] > 0) insights.push({ color:'#0891b2', bg:'#eff6ff', border:'#bfdbfe', emoji:'📅', titulo:`Los ${diasSemana[diaMasGasto[0]]} gastas más`, texto:`${fmt(diaMasGasto[1])} en total. Estar consciente de este patrón es el primer paso para cambiarlo.` });
+
+                if (pctTC > 50) insights.push({ color:'#ef4444', bg:'#fef2f2', border:'#fecaca', emoji:'💳', titulo:`${pctTC}% de tus gastos van a TC`, texto:`Más de la mitad de tus gastos acumulan deuda. Cuando puedas, prioriza pagar con efectivo para no inflar el consumido.` });
+                else if (pctTC > 0) insights.push({ color:'#10b981', bg:'#f0fdf4', border:'#bbf7d0', emoji:'💳', titulo:`Solo el ${pctTC}% va a TC`, texto:`Buen balance. Usas la tarjeta con moderación. Sigue así y tu deuda TC será manejable.` });
+
+                if (cuotasMes > 0 && stats.ingresos > 0) {
+                  const ratio = Math.round(cuotasMes/stats.ingresos*100);
+                  const diasTrabajo = Math.round(cuotasMes/(stats.ingresos/30));
+                  insights.push({ color: ratio>30?'#f97316':'#6366f1', bg: ratio>30?'#fff7ed':'#f5f3ff', border: ratio>30?'#fed7aa':'#ddd6fe', emoji:'⏱️', titulo:`Tus cuotas = ${diasTrabajo} días de trabajo`, texto:`Pagas ${fmt(cuotasMes)}/mes en créditos — el ${ratio}% de tus ingresos. Al terminar el crédito ****6347 recuperas ${fmt(272.28)}/mes.` });
+                }
+
+                if (insights.length===0) return null;
+                return (
+                  <div style={{background:'#fff',borderRadius:20,padding:'16px',marginBottom:14,boxShadow:'0 2px 12px rgba(0,0,0,0.05)'}}>
+                    <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:14}}>
+                      <div style={{width:32,height:32,borderRadius:10,background:'#fef3c7',display:'flex',alignItems:'center',justifyContent:'center'}}><TrendingUp size={16} color="#d97706"/></div>
+                      <div style={S.secTitle}>Lo que tus números dicen</div>
+                    </div>
+                    {insights.map((ins,i)=>(
+                      <div key={i} style={{background:ins.bg,border:`1px solid ${ins.border}`,borderRadius:14,padding:'12px 14px',marginBottom:i<insights.length-1?10:0}}>
+                        <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:5}}>
+                          <span style={{fontSize:16}}>{ins.emoji}</span>
+                          <span style={{fontSize:13,fontWeight:700,color:ins.color}}>{ins.titulo}</span>
+                        </div>
+                        <div style={{fontSize:12,color:'#374151',lineHeight:1.6,paddingLeft:24}}>{ins.texto}</div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
 
               {/* ── Fechas importantes ── */}
               {(() => {
@@ -1600,6 +1719,40 @@ export default function App() {
                 </div>
               )}
 
+            </div>
+          </div>
+        )}
+
+        {/* ══ MODAL SALDO DE CUENTA (FASE E) ═══════════════════════════════ */}
+        {showSaldoSetup && (
+          <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.5)',zIndex:300,display:'flex',alignItems:'flex-end',justifyContent:'center'}}>
+            <div style={{background:'#fff',borderRadius:'24px 24px 0 0',padding:'24px',width:'100%',maxWidth:420}}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}}>
+                <span style={{fontSize:18,fontWeight:800,color:'#1f1b4b'}}>Saldo en cuenta</span>
+                <button onClick={()=>setShowSaldoSetup(false)} style={{background:'none',border:'none',cursor:'pointer'}}><X size={20} color="#9ca3af"/></button>
+              </div>
+              <div style={{fontSize:12,color:'#9ca3af',marginBottom:16,lineHeight:1.5}}>
+                Ingresa cuánto tienes ahora mismo en tu cuenta. La app descontará automáticamente cada gasto en efectivo y sumará cada ingreso.
+              </div>
+              <label style={S.label}>Saldo actual (S/.)</label>
+              <input style={S.input} type="number" placeholder="0.00" value={saldoInput}
+                onChange={e=>setSaldoInput(e.target.value)}
+                onFocus={e=>e.target.style.borderColor='#7c3aed'}
+                onBlur={e=>e.target.style.borderColor='#f0eeff'}
+                autoFocus/>
+              <div style={{display:'flex',gap:8}}>
+                <button style={{...S.submitBtn}} onClick={()=>{
+                  if(!saldoInput) return;
+                  setSaldoCuenta(parseFloat(saldoInput));
+                  setSaldoInput(''); setShowSaldoSetup(false);
+                }}><Wallet size={18}/>Guardar saldo</button>
+              </div>
+              {saldoCuenta !== null && (
+                <button onClick={()=>{setSaldoCuenta(null);setShowSaldoSetup(false);}}
+                  style={{width:'100%',marginTop:10,padding:'10px',background:'none',border:'none',color:'#9ca3af',fontSize:12,fontFamily:'inherit',cursor:'pointer'}}>
+                  Eliminar saldo de cuenta
+                </button>
+              )}
             </div>
           </div>
         )}
