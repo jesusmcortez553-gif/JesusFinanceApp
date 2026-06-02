@@ -635,14 +635,19 @@ export default function App() {
   const [subTabDeudas, setSubTabDeudas] = useState('tc');
 
   // Formulario TX
-  const [txForm, setTxForm]     = useState({ tipo:'gasto', categoria:'Alimentación', descripcion:'', monto:'', fecha:new Date().toISOString().split('T')[0] });
+  const hoy = new Date().toISOString().split('T')[0];
+  const ayer = new Date(Date.now()-86400000).toISOString().split('T')[0];
+  const [txForm, setTxForm]     = useState({ tipo:'gasto', categoria:'Alimentación', descripcion:'', monto:'', fecha:hoy });
   const [txEditId, setTxEditId] = useState(null);
   const [autoClasif, setAutoClasif] = useState(null);
   const [alertaEmoc, setAlertaEmoc] = useState(null);
   const [alertaAceptada, setAlertaAceptada] = useState(false);
-  const [tipoEspecial, setTipoEspecial] = useState(null); // 'salario' | 'disposicion' | 'pagoTC'
+  const [tipoEspecial, setTipoEspecial] = useState(null);
   const [showResumenSalario, setShowResumenSalario] = useState(false);
   const [resumenSalario, setResumenSalario]         = useState(null);
+  const [medioPago, setMedioPago] = useState('efectivo'); // 'efectivo' | 'tc'
+  const [lastMedioPago, setLastMedioPago] = useState('efectivo');
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   // Formulario presupuestos
   const [presForm, setPresForm]     = useState({ categoria:'Alimentación', limite:'' });
@@ -688,15 +693,40 @@ export default function App() {
   const if_ = (e) => { e.target.style.borderColor='#7c3aed'; };
   const ib_ = (e) => { e.target.style.borderColor='#f0eeff'; };
 
+  const DICCIONARIO_INGRESOS = {
+    'Salario':    ['salari','sueldo','quincena','planilla','remuneracion','pago mensual','deposito sueldo'],
+    'Negocio':    ['venta','cobro','cliente','factura','boleta','negocio','tienda'],
+    'Freelance':  ['proyecto','servicio','honorario','consultoria','freelance','trabajo extra','pago proyecto'],
+    'Inversión':  ['dividendo','interes','rendimiento','inversion','ganancia','utilidad'],
+    'Regalo':     ['regalo','propina','bono','gratificacion','prestamo recibido'],
+    'Disposición TC': ['disposicion','disposición','avance efectivo','retiro tc'],
+  };
+
+  const clasificarIngreso = (descripcion) => {
+    if (!descripcion || descripcion.length < 2) return null;
+    const texto = descripcion.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    let mejorCat = null; let mejorScore = 0;
+    for (const [cat, palabras] of Object.entries(DICCIONARIO_INGRESOS)) {
+      for (const palabra of palabras) {
+        const p = palabra.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+        if (texto.includes(p) && p.length > mejorScore) { mejorScore = p.length; mejorCat = cat; }
+      }
+    }
+    return mejorCat ? { categoria: mejorCat, confianza: mejorScore >= 6 ? 'alta' : 'media', score: mejorScore } : null;
+  };
+
   const handleDescChange = (valor) => {
     const texto = valor.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-    // Detectar tipo especial
     const esSalario     = PALABRAS_SALARIO.some(p=>texto.includes(p));
     const esDisposicion = PALABRAS_DISPOSICION.some(p=>texto.includes(p));
     const esPagoTC      = PALABRAS_PAGO_TC.some(p=>texto.includes(p));
     setTxForm(f=>({...f, descripcion:valor}));
     setTipoEspecial(esSalario?'salario':esDisposicion?'disposicion':esPagoTC?'pagoTC':null);
-    if (txForm.tipo === 'gasto' && !esDisposicion && !esPagoTC) {
+    if (txForm.tipo === 'ingreso') {
+      const result = clasificarIngreso(valor);
+      setAutoClasif(result);
+      if (result) setTxForm(f=>({...f, descripcion:valor, categoria:result.categoria}));
+    } else if (txForm.tipo === 'gasto' && !esDisposicion && !esPagoTC) {
       const result = clasificarGasto(valor);
       setAutoClasif(result);
       const alerta = detectarAlerta(valor);
@@ -770,15 +800,31 @@ export default function App() {
     // ── FLUJO NORMAL ──
     let categoriaFinal = txForm.categoria;
     if (txForm.tipo === 'gasto' && autoClasif && !autoClasif.elegida) categoriaFinal = autoClasif.categoria;
-    const txFinal = {...txForm, categoria:categoriaFinal, monto};
+    // Si paga con TC → sube consumido, NO resta balance
+    if (txForm.tipo === 'gasto' && medioPago === 'tc') {
+      setTcs(prev => prev.map((tc,i) => i===0 ? { ...tc, consumido: tc.consumido + monto, deudaActual: tc.deudaActual + monto } : tc));
+    }
+    const txFinal = {...txForm, categoria:categoriaFinal, monto, medioPago};
     if(txEditId){setTxs(p=>p.map(t=>t.id===txEditId?{...txFinal,id:txEditId}:t));setTxEditId(null);}
     else setTxs(p=>[...p,txFinal]);
+    setLastMedioPago(medioPago);
     setTxForm({tipo:'gasto',categoria:'Alimentación',descripcion:'',monto:'',fecha:new Date().toISOString().split('T')[0]});
     setTipoEspecial(null); setAutoClasif(null); setAlertaEmoc(null); setAlertaAceptada(false);
+    setShowDatePicker(false);
     setTab('home');
   };
-  const openAdd      = () => { setTxEditId(null); setAutoClasif(null); setAlertaEmoc(null); setAlertaAceptada(false); setTxForm({tipo:'gasto',categoria:'Alimentación',descripcion:'',monto:'',fecha:new Date().toISOString().split('T')[0]}); setTab('agregar'); };
-  const handleTxEdit = (t) => { setTxForm({...t,monto:String(t.monto)}); setTxEditId(t.id); setAutoClasif(null); setAlertaEmoc(null); setAlertaAceptada(false); setTab('agregar'); };
+  const openAdd = () => {
+    setTxEditId(null); setAutoClasif(null); setAlertaEmoc(null); setAlertaAceptada(false);
+    setMedioPago(lastMedioPago); setShowDatePicker(false);
+    setTxForm({tipo:'gasto',categoria:'Alimentación',descripcion:'',monto:'',fecha:new Date().toISOString().split('T')[0]});
+    setTab('agregar');
+  };
+  const handleTxEdit = (t) => {
+    setTxForm({...t,monto:String(t.monto)}); setTxEditId(t.id);
+    setAutoClasif(null); setAlertaEmoc(null); setAlertaAceptada(false);
+    setMedioPago(t.medioPago||'efectivo'); setShowDatePicker(false);
+    setTab('agregar');
+  };
   const handleTxDel  = (id) => { if(window.confirm('¿Eliminar?')) setTxs(p=>p.filter(t=>t.id!==id)); };
 
   const handlePresSubmit = () => {
@@ -903,7 +949,7 @@ export default function App() {
               {recentTxs.map((t,i)=>{ const info=CAT_ICONOS[t.categoria]||{icon:Package,color:'#6b7280'}; const Icon=info.icon; return (
                 <div key={t.id} style={S.txItem(i===recentTxs.length-1)}>
                   <div style={S.txIconWrap(info.color)}><Icon size={17} color={info.color}/></div>
-                  <div style={{flex:1,minWidth:0}}><div style={S.txName}>{t.descripcion}</div><div style={S.txMeta}>{t.categoria} · {fmtFecha(t.fecha)}</div></div>
+                  <div style={{flex:1,minWidth:0}}><div style={S.txName}>{t.descripcion}</div><div style={S.txMeta}>{t.categoria} · {fmtFecha(t.fecha)}{t.medioPago==='tc'?<> · <CreditCard size={9} color="#b45309" style={{display:'inline',verticalAlign:'middle',marginLeft:2}}/></>:''}</div></div>
                   <div style={S.txAmt(t.tipo)}>{t.tipo==='ingreso'?'+':'-'}{fmtInt(t.monto)}</div>
                   <button onClick={()=>handleTxEdit(t)} style={S.actionBtn('#f5f3ff')}><Pencil size={13} color="#7c3aed"/></button>
                   <button onClick={()=>handleTxDel(t.id)} style={S.actionBtn('#fef2f2')}><Trash2 size={13} color="#ef4444"/></button>
@@ -920,11 +966,11 @@ export default function App() {
             <div style={S.formWrap}><div style={S.formCard}>
 
               {/* Tipo toggle */}
-              <div style={S.typeToggle}>{['gasto','ingreso'].map(tipo=><button key={tipo} style={S.typeBtn(txForm.tipo===tipo,tipo)} onClick={()=>{setTxForm(f=>({...f,tipo,categoria:tipo==='gasto'?'Alimentación':'Salario'}));setAutoClasif(null);setAlertaEmoc(null);}}>{tipo==='ingreso'?<><ArrowUpCircle size={16}/>Ingreso</>:<><ArrowDownCircle size={16}/>Gasto</>}</button>)}</div>
+              <div style={S.typeToggle}>{['gasto','ingreso'].map(tipo=><button key={tipo} style={S.typeBtn(txForm.tipo===tipo,tipo)} onClick={()=>{setTxForm(f=>({...f,tipo,categoria:tipo==='gasto'?'Alimentación':'Salario'}));setAutoClasif(null);setAlertaEmoc(null);setMedioPago('efectivo');}}>{tipo==='ingreso'?<><ArrowUpCircle size={16}/>Ingreso</>:<><ArrowDownCircle size={16}/>Gasto</>}</button>)}</div>
 
-              {/* Descripción con clasificación en tiempo real */}
+              {/* Descripción */}
               <label style={S.label}>Descripción</label>
-              <input style={S.input} type="text" placeholder="ej. 2 aguas minerales, helado, taxi"
+              <input style={S.input} type="text" placeholder="ej. combustible, helado, taxi"
                 value={txForm.descripcion}
                 onChange={e=>handleDescChange(e.target.value)}
                 onFocus={if_} onBlur={ib_}/>
@@ -981,10 +1027,56 @@ export default function App() {
               <input style={S.input} type="number" placeholder="0.00" value={txForm.monto}
                 onChange={e=>setTxForm(p=>({...p,monto:e.target.value}))} onFocus={if_} onBlur={ib_}/>
 
-              {/* Fecha */}
-              <label style={S.label}>Fecha</label>
-              <input style={S.input} type="date" value={txForm.fecha}
-                onChange={e=>setTxForm(p=>({...p,fecha:e.target.value}))} onFocus={if_} onBlur={ib_}/>
+              {/* Fecha — hoy por defecto, botón ayer, picker opcional */}
+              <label style={S.label}>¿Cuándo fue?</label>
+              <div style={{display:'flex',gap:8,marginBottom:showDatePicker?8:12}}>
+                {[{label:'Hoy',val:new Date().toISOString().split('T')[0]},{label:'Ayer',val:new Date(Date.now()-86400000).toISOString().split('T')[0]}].map(op=>(
+                  <button key={op.label} onClick={()=>{setTxForm(p=>({...p,fecha:op.val}));setShowDatePicker(false);}}
+                    style={{flex:1,padding:'10px',borderRadius:12,border:`2px solid ${txForm.fecha===op.val&&!showDatePicker?'#7c3aed':'#f0eeff'}`,
+                      background:txForm.fecha===op.val&&!showDatePicker?'#f5f3ff':'#fafaf9',
+                      color:txForm.fecha===op.val&&!showDatePicker?'#7c3aed':'#9ca3af',
+                      fontWeight:700,fontSize:13,fontFamily:'inherit',cursor:'pointer',transition:'all 0.15s'}}>
+                    {op.label}
+                  </button>
+                ))}
+                <button onClick={()=>setShowDatePicker(v=>!v)}
+                  style={{flex:1,padding:'10px',borderRadius:12,border:`2px solid ${showDatePicker?'#7c3aed':'#f0eeff'}`,
+                    background:showDatePicker?'#f5f3ff':'#fafaf9',color:showDatePicker?'#7c3aed':'#9ca3af',
+                    fontWeight:700,fontSize:13,fontFamily:'inherit',cursor:'pointer',transition:'all 0.15s',
+                    display:'flex',alignItems:'center',justifyContent:'center',gap:4}}>
+                  <Calendar size={14} color={showDatePicker?'#7c3aed':'#9ca3af'}/>Otra
+                </button>
+              </div>
+              {showDatePicker && (
+                <input style={{...S.input,marginBottom:12}} type="date" value={txForm.fecha}
+                  onChange={e=>setTxForm(p=>({...p,fecha:e.target.value}))} onFocus={if_} onBlur={ib_}/>
+              )}
+
+              {/* Medio de pago — solo para gastos */}
+              {txForm.tipo==='gasto' && !tipoEspecial && (
+                <div style={{marginBottom:14}}>
+                  <label style={S.label}>¿Cómo pagaste?</label>
+                  <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
+                    {[{id:'efectivo',label:'Efectivo / Cuenta',sub:'Resta tu balance'},{id:'tc',label:'VISA ****2769',sub:'Sube deuda TC'}].map(mp=>(
+                      <button key={mp.id} onClick={()=>setMedioPago(mp.id)}
+                        style={{padding:'10px 12px',borderRadius:12,border:`2px solid ${medioPago===mp.id?'#7c3aed':'#f0eeff'}`,
+                          background:medioPago===mp.id?'#f5f3ff':'#fafaf9',
+                          cursor:'pointer',fontFamily:'inherit',textAlign:'left',transition:'all 0.15s'}}>
+                        <div style={{fontSize:12,fontWeight:700,color:medioPago===mp.id?'#7c3aed':'#1f1b4b',marginBottom:2,display:'flex',alignItems:'center',gap:5}}>
+                          {mp.id==='tc'?<CreditCard size={12} color={medioPago===mp.id?'#7c3aed':'#9ca3af'}/>:<Wallet size={12} color={medioPago===mp.id?'#7c3aed':'#9ca3af'}/>}
+                          {mp.label}
+                        </div>
+                        <div style={{fontSize:10,color:'#9ca3af'}}>{mp.sub}</div>
+                      </button>
+                    ))}
+                  </div>
+                  {medioPago==='tc' && (
+                    <div style={{marginTop:8,background:'#fef9ec',border:'1px solid #fde68a',borderRadius:10,padding:'8px 12px',fontSize:11,color:'#92400e'}}>
+                      Este gasto no restará tu balance — se suma a tu deuda TC y pagas el {getCicloActual().limitePago}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Categoría final — solo visible si no hay sugerencias activas */}
               {(txForm.tipo==='ingreso' || txForm.descripcion.length < 2) && (
