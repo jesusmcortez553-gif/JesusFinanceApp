@@ -1616,8 +1616,7 @@ export default function App() {
 
                 // Gastos con TC vs efectivo
                 const gastoTC = txs.filter(t=>t.tipo==='gasto'&&t.medioPago==='tc').reduce((s,t)=>s+t.monto,0);
-                const gastoEf = txs.filter(t=>t.tipo==='gasto'&&t.medioPago!=='tc').reduce((s,t)=>s+t.monto,0);
-                const pctTC   = stats.gastos>0?Math.round(gastoTC/stats.gastos*100):0;
+                                const pctTC   = stats.gastos>0?Math.round(gastoTC/stats.gastos*100):0;
 
                 if (tasaAhorro >= 20) insights.push({ color:'#10b981', bg:'#f0fdf4', border:'#bbf7d0', emoji:'🎯', titulo:`Ahorras el ${tasaAhorro.toFixed(1)}% de tus ingresos`, texto:`Estás por encima del 20% recomendado. Cada mes guardas ${fmt(stats.balance)} que trabajan para ti.` });
                 else if (tasaAhorro > 0) insights.push({ color:'#f59e0b', bg:'#fffbeb', border:'#fde68a', emoji:'📊', titulo:`Ahorro al ${tasaAhorro.toFixed(1)}%`, texto:`Para llegar al 20% recomendado necesitas ahorrar ${fmt(stats.ingresos*0.2)} al mes. Te faltan ${fmt(stats.ingresos*0.2-stats.balance)}.` });
