@@ -672,13 +672,24 @@ const MetaCard = ({ meta, onAbonar, onEdit, onDelete }) => {
 // ═══════════════════════════════════════════════════════════════════════════
 // APP PRINCIPAL
 // ═══════════════════════════════════════════════════════════════════════════
-export default function App() {
+export default function App({ user, data, onLogout }) {
   const [tab, setTab]         = useState('home');
-  const [txs, setTxs]         = useState(INITIAL_TX);
+  // ── FIREBASE DATA ──
+  const {
+    txs: fbTxs, presupuestos: fbPres, metas: fbMetas,
+    streak, addTx,
+  } = data || {};
+
+  const [txs, setTxs]               = useState(INITIAL_TX);
   const [presupuestos, setPresupuestos] = useState(INITIAL_PRESUPUESTOS);
-  const [metas, setMetas]     = useState(INITIAL_METAS);
-  const [tcs, setTcs]         = useState(INITIAL_TC);
-  const [prestamos, setPrestamos] = useState(INITIAL_PRESTAMOS);
+  const [metas, setMetas]           = useState(INITIAL_METAS);
+  const [tcs, setTcs]               = useState(INITIAL_TC);
+  const [prestamos, setPrestamos]   = useState(INITIAL_PRESTAMOS);
+
+  // Sync Firebase data to local state
+  React.useEffect(() => { if (fbTxs && fbTxs.length > 0) setTxs(fbTxs); }, [fbTxs]);
+  React.useEffect(() => { if (fbPres && fbPres.length > 0) setPresupuestos(fbPres); }, [fbPres]);
+  React.useEffect(() => { if (fbMetas && fbMetas.length > 0) setMetas(fbMetas); }, [fbMetas]);
   const [chartPeriod, setChartPeriod] = useState('día');
   const [showAll, setShowAll] = useState(false);
   const [subTabDeudas, setSubTabDeudas] = useState('tc');
@@ -868,7 +879,7 @@ export default function App() {
     }
     const txFinal = {...txForm, categoria:categoriaFinal, monto, medioPago};
     if(txEditId){setTxs(p=>p.map(t=>t.id===txEditId?{...txFinal,id:txEditId}:t));setTxEditId(null);}
-    else setTxs(p=>[...p,txFinal]);
+    else { if(addTx) addTx({...txFinal}).catch(()=>{}); setTxs(p=>[...p,{...txFinal,id:Date.now()}]); }
     setLastMedioPago(medioPago);
     setTxForm({tipo:'gasto',categoria:'Alimentación',descripcion:'',monto:'',fecha:new Date().toISOString().split('T')[0]});
     setTipoEspecial(null); setAutoClasif(null); setAlertaEmoc(null); setAlertaAceptada(false);
@@ -930,8 +941,19 @@ export default function App() {
             <div style={S.bubble(undefined,undefined,'-15px','-15px',110,110,0.04)}/>
             <div style={S.hContent}>
               <div style={S.topRow}>
-                <div><div style={S.greeting}>Buenos días</div><div style={S.userName}>Jesús</div></div>
-                <div style={S.avatarCircle}><User size={20} color="rgba(255,255,255,0.9)"/></div>
+                <div><div style={S.greeting}>Buenos días</div><div style={S.userName}>{user?.displayName?.split(' ')[0]||'Jesús'}</div></div>
+                <div style={{display:'flex',alignItems:'center',gap:10}}>
+                  {streak && streak.dias > 0 && (
+                    <div style={{display:'flex',alignItems:'center',gap:4,background:'rgba(255,255,255,0.15)',borderRadius:20,padding:'4px 10px'}}>
+                      <span style={{fontSize:14}}>🔥</span>
+                      <span style={{color:'#fff',fontSize:12,fontWeight:700}}>{streak.dias}</span>
+                    </div>
+                  )}
+                  {user?.photoURL
+                    ? <img src={user.photoURL} alt="avatar" style={{width:38,height:38,borderRadius:'50%',border:'2px solid rgba(255,255,255,0.4)',cursor:'pointer'}} onClick={onLogout}/>
+                    : <div style={S.avatarCircle} onClick={onLogout}><User size={20} color="rgba(255,255,255,0.9)"/></div>
+                  }
+                </div>
               </div>
               <div style={S.balLabel}>Balance total</div>
               <div style={S.balAmount}>{fmtInt(stats.balance)}</div>
