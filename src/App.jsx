@@ -188,24 +188,8 @@ const detectarAlerta = (descripcion) => {
   return null;
 };
 
-const INITIAL_TX = [
-  { id:1,  tipo:'ingreso', categoria:'Salario',         descripcion:'Salario mayo',       monto:2500, fecha:'2026-05-05' },
-  { id:2,  tipo:'gasto',   categoria:'Alimentación',    descripcion:'Mercado semanal',    monto:320,  fecha:'2026-05-08' },
-  { id:3,  tipo:'gasto',   categoria:'Transporte',      descripcion:'Pasajes semana',     monto:80,   fecha:'2026-05-10' },
-  { id:4,  tipo:'ingreso', categoria:'Freelance',       descripcion:'Proyecto web',       monto:800,  fecha:'2026-05-15' },
-  { id:5,  tipo:'gasto',   categoria:'Servicios',       descripcion:'Luz y agua',         monto:150,  fecha:'2026-05-18' },
-  { id:6,  tipo:'gasto',   categoria:'Entretenimiento', descripcion:'Salida familiar',    monto:120,  fecha:'2026-05-20' },
-  { id:7,  tipo:'gasto',   categoria:'Salud',           descripcion:'Consulta médica',    monto:90,   fecha:'2026-05-22' },
-  { id:8,  tipo:'ingreso', categoria:'Negocio',         descripcion:'Ventas del mes',     monto:1200, fecha:'2026-05-25' },
-  { id:9,  tipo:'gasto',   categoria:'Alimentación',    descripcion:'Restaurante',        monto:95,   fecha:'2026-05-26' },
-  { id:10, tipo:'gasto',   categoria:'Transporte',      descripcion:'Uber aeropuerto',    monto:45,   fecha:'2026-05-28' },
-];
-const INITIAL_PRESUPUESTOS = [
-  { id:1, categoria:'Alimentación',    limite:500 },
-  { id:2, categoria:'Transporte',      limite:150 },
-  { id:3, categoria:'Entretenimiento', limite:100 },
-  { id:4, categoria:'Servicios',       limite:200 },
-];
+const INITIAL_TX = [];
+const INITIAL_PRESUPUESTOS = [];
 
 // ─── FASE C: PRESUPUESTOS SUGERIDOS ──────────────────────────────────────────
 const generarSugerencias = (txs, presupuestosActivos) => {
@@ -226,11 +210,7 @@ const generarSugerencias = (txs, presupuestosActivos) => {
       basadoEn: countPorCat[cat],
     }));
 };
-const INITIAL_METAS = [
-  { id:1, nombre:'Fondo de emergencia', objetivo:5000, actual:1200, color:'#6366f1' },
-  { id:2, nombre:'Vacaciones',          objetivo:2000, actual:650,  color:'#10b981' },
-  { id:3, nombre:'Nuevo celular',       objetivo:1500, actual:900,  color:'#f59e0b' },
-];
+const INITIAL_METAS = [];
 
 // ── FASE 3: Tarjetas de crédito y préstamos (datos reales BCP) ──────────────
 
@@ -262,57 +242,8 @@ const parseLimitePago = (str) => {
   return new Date(`20${y}-${m}-${d}`);
 };
 
-const INITIAL_TC = [
-  {
-    id: 1,
-    nombre: 'VISA BCP LATAM Pass',
-    banco: 'BCP',
-    numero: '****2769',
-    lineaTotal: 22900,
-    consumido: 1889.85,
-    deudaActual: 630.82,
-    tea: 34.33,
-    teaEfectivo: 87.50,
-    color: '#b45309',
-    gradiente: 'linear-gradient(135deg, #92400e 0%, #b45309 50%, #d97706 100%)',
-  },
-];
-const INITIAL_PRESTAMOS = [
-  {
-    id: 1,
-    nombre: 'Crédito Efectivo',
-    banco: 'BCP',
-    numero: '****6347',
-    montoOriginal: 14700,
-    capitalPendiente: 1312.82,
-    pagado: 13387.18,
-    cuotaActual: 15,
-    totalCuotas: 20,
-    cuotaMensual: 272.28,
-    proximoPago: '2026-06-28',
-    tea: 8.70,
-    tcea: 10.21,
-    automatico: false,
-    color: '#1d4ed8',
-  },
-  {
-    id: 2,
-    nombre: 'Crédito Efectivo',
-    banco: 'BCP',
-    numero: '****6069',
-    montoOriginal: 3740.40,
-    capitalPendiente: 3740.40,
-    pagado: 0,
-    cuotaActual: 0,
-    totalCuotas: 36,
-    cuotaMensual: 103.90,
-    proximoPago: '2026-07-28',
-    tea: 8.70,
-    tcea: 10.21,
-    automatico: true,
-    color: '#0891b2',
-  },
-];
+const INITIAL_TC = [];
+const INITIAL_PRESTAMOS = [];
 
 const fmt      = (n) => new Intl.NumberFormat('es-PE',{style:'currency',currency:'PEN',minimumFractionDigits:2}).format(n);
 const fmtShort = (n) => n >= 1000 ? `S/${(n/1000).toFixed(1)}k` : `S/${Math.round(n)}`;
