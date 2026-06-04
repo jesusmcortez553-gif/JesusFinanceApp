@@ -11,181 +11,197 @@ import {
   Pencil, Trash2, User, ChevronRight, Calendar,
   AlertTriangle, CheckCircle, Flag, PiggyBank, X,
   CreditCard, Landmark, Clock, TrendingDown,
-  Receipt
+  Receipt, Utensils, Plane, Moon, Users, UserCheck
 } from 'lucide-react';
 
 // ─── DATOS INICIALES ──────────────────────────────────────────────────────────
 const CAT_ICONOS = {
-  'Alimentación':    { icon: ShoppingCart, color: '#f97316' },
-  'Transporte':      { icon: Car,          color: '#3b82f6' },
-  'Servicios':       { icon: Zap,          color: '#eab308' },
-  'Salud':           { icon: Heart,        color: '#ef4444' },
-  'Entretenimiento': { icon: Gamepad2,     color: '#8b5cf6' },
-  'Ropa':            { icon: Shirt,        color: '#ec4899' },
-  'Educación':       { icon: BookOpen,     color: '#06b6d4' },
-  'Otros':           { icon: Package,      color: '#6b7280' },
-  'Salario':         { icon: Briefcase,    color: '#10b981' },
-  'Negocio':         { icon: Store,        color: '#059669' },
-  'Freelance':       { icon: Monitor,      color: '#0d9488' },
-  'Inversión':       { icon: TrendingUp,   color: '#0891b2' },
-  'Regalo':          { icon: Gift,         color: '#7c3aed' },
-  'Disposición TC':  { icon: CreditCard,   color: '#dc2626' },
+  'Alimentación':  { icon: ShoppingCart, color: '#f97316' },
+  'Salidas':       { icon: Utensils,     color: '#f59e0b' },
+  'Transporte':    { icon: Car,          color: '#3b82f6' },
+  'Viajes':        { icon: Plane,        color: '#0891b2' },
+  'Servicios':     { icon: Zap,          color: '#eab308' },
+  'Salud':         { icon: Heart,        color: '#ef4444' },
+  'Entretenimiento':{ icon: Gamepad2,    color: '#8b5cf6' },
+  'Vida nocturna': { icon: Moon,         color: '#6d28d9' },
+  'Educación':     { icon: BookOpen,     color: '#06b6d4' },
+  'Ropa':          { icon: Shirt,        color: '#ec4899' },
+  'Hogar':         { icon: Home,         color: '#84cc16' },
+  'Familiar':      { icon: Users,        color: '#10b981' },
+  'Social':        { icon: UserCheck,    color: '#059669' },
+  'Regalo':        { icon: Gift,         color: '#7c3aed' },
+  'Mascotas':      { icon: Package,      color: '#a16207' },
+  'Otros':         { icon: Package,      color: '#6b7280' },
+  'Salario':       { icon: Briefcase,    color: '#10b981' },
+  'Negocio':       { icon: Store,        color: '#059669' },
+  'Freelance':     { icon: Monitor,      color: '#0d9488' },
+  'Inversión':     { icon: TrendingUp,   color: '#0891b2' },
+  'Disposición TC':{ icon: CreditCard,   color: '#dc2626' },
 };
-const CATS_GASTO   = ['Alimentación','Transporte','Servicios','Salud','Entretenimiento','Ropa','Educación','Hogar','Mascotas','Otros'];
+const CATS_GASTO   = ['Alimentación','Salidas','Transporte','Viajes','Servicios','Salud','Entretenimiento','Vida nocturna','Educación','Ropa','Hogar','Familiar','Social','Regalo','Mascotas','Otros'];
 const CATS_INGRESO = ['Salario','Negocio','Freelance','Inversión','Disposición TC','Regalo','Otros'];
 const MESES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 
-// ─── DICCIONARIO PERUANO ──────────────────────────────────────────────────────
+// ─── DICCIONARIO PERUANO — 15 CATEGORÍAS ────────────────────────────────────
 const DICCIONARIO = {
   'Alimentación': [
-    'bodeg','mercad','supermercad','plazavea','plaza vea','wong','tottus','metro','vivand',
-    'tambo','mass','listo','oxxo','poll','cevich','chif','polleri','restaur','comid',
-    'almuerz','desayun','cen','menu','deliver','rapp','pedido','uber eat','pan','panader',
-    'gaseosa','helad','snack','anticuch','chicharr','cald','sop','arroz','verdur','frut',
-    'carn','pescad','cuy','pachamank','juane','tacacho','mazamor','picard','empanada',
-    'salchipap','hamburgues','pizza','sushi','choclo','canch','mote','chicha','emollient',
-    'quinua','kiwicha','palt','lucum','maracuy','papay','maiz','camot','yuc','cecin',
-    'charqui','mondong','causit','lomo','aji','rocot','huancain','sangucheri','sanguch',
-    'baguett','croasant','juguer','frutill','durazn','manzana','platan','naranj','limon',
-    'leche','yogur','queso','mantequill','huev','atun','sardina',
-    'alit','leche tigr','acevich','agua mineral','aguas mineral',
+    'bodeg','mercad','supermercad','plazavea','wong','tottus','tambo','mass','listo','oxxo',
+    'caserít','minimarket','pan','panader','desayun','leche','yogur','queso','huev','arroz',
+    'verdur','frut','carn','pescad','atun','sardina','gaseosa','agua mineral','aguas mineral',
+    'rappi','pedidosya','uber eat','delivery','salchipap','anticuch','picard','empanada',
+    'sanguch','baguett','quinua','kiwicha','avena','cereal','choclo','papa','camot',
+  ],
+  'Salidas': [
+    'restaur','cevicher','polleri','chifer','pizzer','hamburgues','sushit',
+    'cevich','lomo','aji de gallina','causa','chicharr','juane','tacacho',
+    'almuerz','menú','menu del dia','la carta','buffet','cena','brunch','lonch',
   ],
   'Transporte': [
-    'uber','cabif','taxi','bus','micr','comb','pasaj','combustibl','gasolin','grif',
-    'repsol','primax','pecsa','estacionam','peaj','mototax','tren','metropolit',
-    'corredor','colectiv','motocar','biciclet','scooter','autopist','panamerican',
-    'carretera','paradero','terminal','furgon','camioneta',
-    'mantenimi moto','moto','motoref','llanta','aceite moto','revision moto',
+    'uber','cabif','taxi','indriver','beat','bus','micr','comb','colectiv',
+    'metropolit','corredor','tren','mototax','motocar','tuc',
+    'pasaje','pasaj','combustibl','gasolin','grif','repsol','primax','pecsa',
+    'estacionam','peaj','cochera','mantenimi moto','llanta','aceite moto',
+  ],
+  'Viajes': [
+    'aeropuerto','terminal terrestre','cruz del sur','tepsa','movil','oltursa',
+    'hotel','hostal','airbnb','hospedaj','alojam',
+    'pasaje a ','pasaje para ','bus a ','bus para ','vuelo a ',
   ],
   'Servicios': [
-    'luz','agua','gas','internet','clar','movista','entel','bitel','telefon','recib',
-    'sedapal','enel','electr','cabl','netflix','spotify','disney','hbo','youtube',
-    'prime','recarg','chip','plan','modem','router','soat','alquil','arriend',
-    'administr','porteria','condomin','limpiez','plomer','gasfiter','pintor',
-    'cerrajer','mudanz','flet','segur vida','pension segur',
+    'luz','agua','gas','internet','wifi','claro','movistar','entel','bitel',
+    'sedapal','enel','netflix','spotify','disney','hbo','youtube premium','prime video',
+    'recarg','chip','plan celular','alquil','arriend','administr','condomin',
+    'plomer','gasfiter','electricista','cerrajer',
+    'claude','chatgpt','canva pro','figma','zoom','google one','icloud',
   ],
   'Salud': [
     'farmaci','botic','inkafarm','mifarm','doctor','medic','clinic','hospital',
-    'consult','analis','laborator','medicament','pastill','medicin','essalud',
-    'optic','dentist','psicolog','nutricion','gimnasi','yoga','pilates','terapi',
-    'vacun','enfermera','emergen','urgent','rayos x','ecografi','tomografi',
-    'lent','anteoj','operacion','cirugi',
-  ],
-  'Educación': [
-    'colegio','univers','institu','matricul','pension','curs','libr','util',
-    'cuadern','lapic','fotocopi','impres','capacit','academi','preuniversit',
-    'taller','seminari','congres','certific','diplomad','maestri','doctorad',
-    'ingles','idiom','computo','programac','diseñ','market','contabil',
+    'consult','analis','laborator','medicament','pastill','medicin','vitamina',
+    'essalud','optic','dentist','psicolog','nutricion','terapia','vacun',
+    'emergencia','gimnasi','yoga','pilates','crossfit',
   ],
   'Entretenimiento': [
-    'cine','jueg','videojueg','concert','event','parqu','piscin','discotec',
-    'bar','kara','trag','cerve','licor','salid','estadio','partido','futbol',
-    'voley','basket','sport','camping','excursion','turism','hotel','hostal',
-    'airbnb','paseo','playa','sierra','selva','ron','whisky','pisco','shots',
-    'cerveza','vino','wine','hit','wild','cigarr','tabaco','tragos','copa',
+    'cine','cinemark','cineplanet','concert','event','teatro','obra',
+    'parque','piscin','estadio','partido','futbol','voley',
+    'videojueg','jueg','playstation','xbox','steam',
+    'karting','paintball','escape room','zoologico','museo',
+  ],
+  'Vida nocturna': [
+    'cerveza','cerve','chela','chelas','ron ','whisky','pisco','vodka','shots','tequila',
+    'trag','licor','vino','wine','copa','coctail','cocktail',
+    'discotec','disco','after','boliche','pub','karaoke',
+    'botella','tabla','mesa vip','hit ','wild ','cigarr','tabaco','bar ',
+  ],
+  'Educación': [
+    'colegio','univers','institu','academi','preuniversit',
+    'matricul','pension escolar','pension universidad',
+    'curs','taller','seminari','capacit','diplomad','maestri',
+    'libr','util','cuadern','lapic','fotocopi',
+    'ingles','idiom','udemy','coursera','platzi','domestika',
   ],
   'Ropa': [
-    'rop','pol','camis','pantalon','zapatill','zapato','calzad','vestid','fald',
-    'saga','ripley','oechsl','topi','falabella','zara','adidas','nike','puma',
-    'reebok','casac','chompa','chalec','corbat','cinturon','calcet','pijam',
-    'mochil','bolso','cartera','maletin','gorr','sombrer','bufand','guant',
+    'rop','polo','camis','pantalon','short','zapatill','zapato','calzad',
+    'vestid','falda','blusa','chompa','casac','saga falabella','ripley',
+    'oechsl','topi top','adidas','nike','puma','reebok',
+    'mochil','bolso','cartera','gorr','calcet','pijam',
   ],
   'Hogar': [
-    'muebl','electrodomest','cocin','refrigerad','lavador','microond','licuador',
-    'planch','aspirad','sarten','oll','vajill','sabanas','toall','almohadon',
-    'cortinas','focos','pilas','ferreteria','sodimac','promart','maestro',
-    'ace','ariel','downy','detergent','lejia','desinfect','escob','trapeador',
-    'papel higien','servilleta','pintur','pegament',
+    'muebl','refrigerad','lavador','microond','licuador','planch',
+    'olla','sarten','vajill','foco','pila','ferreteria','sodimac','promart',
+    'detergent','lejia','desinfect','escob','trapeador','papel higien',
+  ],
+  'Familiar': [
+    'familia','familiar','mamá','mama','papá','papa',
+    'hermano','hermana','hijo','hija','tio','tia','abuelo','abuela',
+    'cena familia','almuerzo familia','reunion familiar','pollada',
+  ],
+  'Social': [
+    'amigos','amigo','amiga','patas','pata',
+    'cena amigos','salida amigos','reunion amigos',
+    'invité','pague yo','cubrí','cumpleaños de','onomastico de',
+  ],
+  'Regalo': [
+    'regalo','regalito','detalle','presente','sorpresa',
+    'cumpleaños para','onomastico para','dia de la madre','dia del padre',
+    'san valentin','navidad','año nuevo','baby shower','compré para',
   ],
   'Mascotas': [
-    'veterinari','mascot','perr','gat','aliment mascot','petshop','pienso',
-    'vacun perr','baño mascot','peluquer mascot','correa','arena gat',
+    'veterinari','petshop','pet shop','mascota',
+    'perr','gato','gat','pienso','alimento mascota','croquetas',
+    'vacun perr','baño mascota','correa',
   ],
 };
 
-// ─── PALABRAS SALARIO ────────────────────────────────────────────────────────
-const PALABRAS_SALARIO = ['salari','sueldo','quincena','planilla','remuneracion','pago mensual','deposito sueldo','abono sueldo'];
-const PALABRAS_DISPOSICION = ['disposicion','disposición','dispos efectivo','retiro tc','avance efectivo','avance tc','retiro tarjeta'];
-const PALABRAS_PAGO_TC = ['pago tc','pago tarjet','pago visa','pago credito tc','abono tarjet','cancelar tarjet'];
+// ─── CIUDADES PARA VIAJES ─────────────────────────────────────────────────────
+const CIUDADES = ['lima','huancayo','satipo','cusco','arequipa','trujillo','iquitos',
+  'tarapoto','pucallpa','piura','chiclayo','ayacucho','huaraz','cajamarca',
+  'tacna','puno','juliaca','nazca','paracas'];
 
-// ─── PALABRAS NOCTURNAS ───────────────────────────────────────────────────────
-const PALABRAS_NOCTURNAS = [
-  'cerve','cerveza','ron','whisky','pisco','shots','trag','licor','vino','wine',
-  'hit','wild','cigarr','tabaco','discotec','bar','kara','tragos','copas',
-  'coctail','cocktail','fiesta','botella','chela','chelas',
-];
-
-// ─── MENSAJES MOTIVACIONALES ──────────────────────────────────────────────────
-const MENSAJES_NOCHE = [
-  "Son altas horas de la noche. Las decisiones de madrugada cuestan más de lo que parecen.",
-  "Tu yo del futuro está mirando lo que haces ahora mismo.",
-  "Cada sol que gastas esta noche es un paso más lejos de donde quieres estar.",
-  "La libertad financiera se construye en las decisiones que nadie ve.",
-];
-const MENSAJES_ALCOHOL = [
-  "Este gasto puede parecer pequeño ahora, pero estos momentos se acumulan.",
-  "Tu meta más cercana necesita este dinero más que este momento.",
-  "No te juzgo — solo te recuerdo quién quieres ser mañana.",
-  "Una decisión consciente es mejor que una decisión automática. Tú eliges.",
-  "Lo que gastas hoy es tiempo de libertad que te quitas mañana.",
-];
-
-// ─── MOTOR DE CLASIFICACIÓN ───────────────────────────────────────────────────
+// ─── MOTOR DE CLASIFICACIÓN — 6 CAPAS ────────────────────────────────────────
 const clasificarGasto = (descripcion, monto = 0) => {
   if (!descripcion || descripcion.length < 2) return null;
   const texto = descripcion.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
   const hora  = new Date().getHours();
-  const esNocturno = hora >= 22 || hora <= 5;
+  const esNocturno = hora >= 21 || hora <= 5;
+  const montoNum   = parseFloat(monto) || 0;
 
-  // ── Capa 1: palabras clave base ──
+  // CAPA 1: Alcohol → siempre Vida nocturna
+  const palabrasAlcohol = ['cerveza','cerve','chela','chelas','ron ','whisky','pisco','vodka',
+    'shots','tequila','trag','licor','vino','wine','copa','coctail','cocktail',
+    'discotec','disco','after','boliche','pub','karaoke','hit ','wild ','cigarr','tabaco','bar '];
+  if (palabrasAlcohol.some(p => texto.includes(p))) return { categoria:'Vida nocturna', confianza:'alta', ajustado:false };
+
+  // CAPA 2: Delivery → siempre Alimentación
+  if (['rappi','pedidosya','uber eat','delivery','ifood'].some(p => texto.includes(p)))
+    return { categoria:'Alimentación', confianza:'alta', ajustado:false };
+
+  // CAPA 3: Contexto familiar/social
+  const palabrasFam = ['familia','familiar','mamá','mama','papá','papa','hermano','hermana','hijo','hija','tio','tia','abuelo','abuela'];
+  if (palabrasFam.some(p => texto.includes(p.normalize('NFD').replace(/[\u0300-\u036f]/g,''))))
+    return { categoria:'Familiar', confianza:'alta', ajustado:false };
+  const palabrasSoc = ['amigos','amigo','amiga','patas','pata','invité','cubrí','cumpleaños de'];
+  if (palabrasSoc.some(p => texto.includes(p.normalize('NFD').replace(/[\u0300-\u036f]/g,''))))
+    return { categoria:'Social', confianza:'alta', ajustado:false };
+
+  // CAPA 4: Regalo
+  const palabrasRegalo = ['regalo','regalito','detalle','presente','sorpresa','cumpleaños para','dia de la madre','dia del padre','san valentin','navidad'];
+  if (palabrasRegalo.some(p => texto.includes(p.normalize('NFD').replace(/[\u0300-\u036f]/g,''))))
+    return { categoria:'Regalo', confianza:'alta', ajustado:false };
+
+  // CAPA 5: Pasaje + ciudad/prefijo → Viajes
+  const tieneDestino = CIUDADES.some(c => texto.includes(c));
+  const tienePrefijo = ['a ','para ','hacia '].some(p => texto.includes('pasaje '+p) || texto.includes('bus '+p));
+  if ((texto.includes('pasaje') || texto.includes('bus') || texto.includes('vuelo')) && (tieneDestino || tienePrefijo))
+    return { categoria:'Viajes', confianza:'alta', ajustado:false };
+  if (texto.includes('aeropuerto') && (texto.includes('uber') || texto.includes('taxi')))
+    return { categoria:'Viajes', confianza:'alta', ajustado:false };
+
+  // CAPA 6: Diccionario + monto + horario
   let mejorCat = null; let mejorScore = 0;
   for (const [cat, palabras] of Object.entries(DICCIONARIO)) {
+    if (['Vida nocturna','Familiar','Social','Regalo'].includes(cat)) continue;
     for (const palabra of palabras) {
-      const p = palabra.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-      if (texto.includes(p) && p.length > mejorScore) {
-        mejorScore = p.length; mejorCat = cat;
-      }
+      const p = palabra.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+      if (texto.includes(p) && p.length > mejorScore) { mejorScore = p.length; mejorCat = cat; }
     }
   }
 
-  // ── Capa 2: ajuste por horario nocturno ──
+  // Ajuste: Alimentación + monto > S/15 + no delivery → Salidas
+  if (mejorCat === 'Alimentación' && montoNum > 15)
+    mejorCat = 'Salidas';
+
+  // Ajuste nocturno: snack/bebida no alcohólica de noche → Vida nocturna
   if (esNocturno && mejorCat === 'Alimentación') {
-    // Monto alto de noche → probablemente entretenimiento
-    const montoN = parseFloat(monto) || 0;
-    const esMontoAlto = montoN >= 15;
-    // Palabras que de noche cambian de categoría
-    const palabrasAmbiguas = ['agua','gaseosa','jugo','bebida','trago','botella'];
-    const tieneAmbigua = palabrasAmbiguas.some(p => texto.includes(p));
-    if (esMontoAlto || tieneAmbigua) {
-      mejorCat = 'Entretenimiento';
-      mejorScore = mejorScore + 2; // boost para indicar ajuste nocturno
-    }
+    if (['agua','chicle','gaseosa','jugo','bebida','snack'].some(p=>texto.includes(p)) && montoNum >= 5)
+      return { categoria:'Vida nocturna', confianza:'media', ajustado:true };
   }
 
-  // ── Capa 3: contexto combinado ──
-  const contextosEntret = ['discotec','disco','bar','karaoke','after','fiesta','previa','boliche','pub'];
-  const contextosAlim   = ['bodega','mercado','tambo','mass','listo','restaur','sanguch','menu'];
-  const tieneContextoEntret = contextosEntret.some(p => texto.includes(p));
-  const tieneContextoAlim   = contextosAlim.some(p => texto.includes(p));
+  // Ajuste nocturno: comida > S/20 de noche → Salidas
+  if (esNocturno && mejorCat === 'Alimentación' && montoNum > 20)
+    return { categoria:'Salidas', confianza:'media', ajustado:true };
 
-  if (tieneContextoEntret) mejorCat = 'Entretenimiento';
-  if (tieneContextoAlim && !tieneContextoEntret) mejorCat = 'Alimentación';
-
-  const confianza = mejorScore >= 8 ? 'alta' : mejorScore >= 5 ? 'media' : 'baja';
-  const ajustado  = esNocturno && mejorCat === 'Entretenimiento';
-  return mejorCat ? { categoria: mejorCat, confianza, score: mejorScore, ajustado } : null;
-};
-
-// ─── DETECTAR ALERTA EMOCIONAL ────────────────────────────────────────────────
-const detectarAlerta = (descripcion) => {
-  const hora = new Date().getHours();
-  const texto = descripcion.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-  const esNocturno = hora >= 23 || hora <= 4;
-  const esAlcohol  = PALABRAS_NOCTURNAS.some(p => texto.includes(p.toLowerCase()));
-  if (esNocturno && esAlcohol) return { tipo:'ambos',   msg: MENSAJES_NOCHE[Math.floor(Math.random()*MENSAJES_NOCHE.length)],    color:'#7f1d1d', bg:'#fef2f2', border:'#fecaca' };
-  if (esNocturno)              return { tipo:'noche',   msg: MENSAJES_NOCHE[Math.floor(Math.random()*MENSAJES_NOCHE.length)],    color:'#92400e', bg:'#fffbeb', border:'#fde68a' };
-  if (esAlcohol)               return { tipo:'alcohol', msg: MENSAJES_ALCOHOL[Math.floor(Math.random()*MENSAJES_ALCOHOL.length)],color:'#7f1d1d', bg:'#fef2f2', border:'#fecaca' };
-  return null;
+  const confianza = mejorScore >= 6 ? 'alta' : mejorScore >= 4 ? 'media' : 'baja';
+  return mejorCat ? { categoria:mejorCat, confianza, ajustado:false } : null;
 };
 
 const INITIAL_TX = [];
@@ -716,14 +732,20 @@ export default function App({ user, data, onLogout }) {
     const esSalario     = PALABRAS_SALARIO.some(p=>texto.includes(p));
     const esDisposicion = PALABRAS_DISPOSICION.some(p=>texto.includes(p));
     const esPagoTC      = PALABRAS_PAGO_TC.some(p=>texto.includes(p));
-    setTxForm(f=>({...f, descripcion:valor}));
+    // BLOQUE 2: extraer monto del texto
+    const { monto: montoDetectado } = extraerMonto(valor);
+    if (montoDetectado) {
+      setTxForm(f=>({...f, descripcion:valor, monto:String(montoDetectado)}));
+    } else {
+      setTxForm(f=>({...f, descripcion:valor}));
+    }
     setTipoEspecial(esSalario?'salario':esDisposicion?'disposicion':esPagoTC?'pagoTC':null);
     if (txForm.tipo === 'ingreso') {
       const result = clasificarIngreso(valor);
       setAutoClasif(result);
       if (result) setTxForm(f=>({...f, descripcion:valor, categoria:result.categoria}));
     } else if (txForm.tipo === 'gasto' && !esDisposicion && !esPagoTC) {
-      const result = clasificarGasto(valor, txForm.monto);
+      const result = clasificarGasto(valor, montoDetectado || txForm.monto);
       setAutoClasif(result);
       const alerta = detectarAlerta(valor);
       setAlertaEmoc(alerta);
@@ -998,12 +1020,20 @@ export default function App({ user, data, onLogout }) {
               {/* Tipo toggle */}
               <div style={S.typeToggle}>{['gasto','ingreso'].map(tipo=><button key={tipo} style={S.typeBtn(txForm.tipo===tipo,tipo)} onClick={()=>{setTxForm(f=>({...f,tipo,categoria:tipo==='gasto'?'Alimentación':'Salario'}));setAutoClasif(null);setAlertaEmoc(null);setMedioPago('efectivo');}}>{tipo==='ingreso'?<><ArrowUpCircle size={16}/>Ingreso</>:<><ArrowDownCircle size={16}/>Gasto</>}</button>)}</div>
 
-              {/* Descripción */}
-              <label style={S.label}>Descripción</label>
-              <input style={S.input} type="text" placeholder="ej. combustible, helado, taxi"
+              {/* Descripción + monto en una línea */}
+              <label style={S.label}>¿Qué compraste? (puedes incluir el monto)</label>
+              <input style={S.input} type="text" placeholder="ej: ceviche 29 · uber 12 · salario 2500"
                 value={txForm.descripcion}
                 onChange={e=>handleDescChange(e.target.value)}
                 onFocus={if_} onBlur={ib_}/>
+              {extraerMonto(txForm.descripcion).monto && (
+                <div style={{marginTop:-8,marginBottom:10,display:'flex',alignItems:'center',gap:6,padding:'6px 12px',background:'#f0fdf4',borderRadius:10,border:'1px solid #bbf7d0'}}>
+                  <CheckCircle size={13} color="#16a34a"/>
+                  <span style={{fontSize:12,color:'#16a34a',fontWeight:600}}>
+                    Monto detectado: S/ {extraerMonto(txForm.descripcion).monto}
+                  </span>
+                </div>
+              )}
 
               {/* SUGERENCIAS DE CATEGORÍA EN TIEMPO REAL */}
               {txForm.tipo==='gasto' && txForm.descripcion.length >= 2 && (()=>{
@@ -1052,8 +1082,10 @@ export default function App({ user, data, onLogout }) {
                 );
               })()}
 
-              {/* Monto */}
-              <label style={S.label}>Monto (S/.)</label>
+              {/* Monto — se llena solo si escribiste el número en la descripción */}
+              <label style={S.label}>
+                Monto (S/.) {extraerMonto(txForm.descripcion).monto ? <span style={{color:'#10b981',fontSize:10,fontWeight:600}}>✓ detectado</span> : <span style={{color:'#9ca3af',fontSize:10}}>o escríbelo aquí</span>}
+              </label>
               <input style={S.input} type="number" placeholder="0.00" value={txForm.monto}
                 onChange={e=>setTxForm(p=>({...p,monto:e.target.value}))} onFocus={if_} onBlur={ib_}/>
 
