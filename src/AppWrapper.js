@@ -16,7 +16,9 @@ export default function AppWrapper() {
         display:'flex', alignItems:'center', justifyContent:'center',
       }}>
         <div style={{textAlign:'center'}}>
-          <div style={{fontSize:40,marginBottom:16}}>💜</div>
+          <div style={{width:48,height:48,borderRadius:16,background:'rgba(255,255,255,0.2)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px'}}>
+            <div style={{width:24,height:24,border:'3px solid rgba(255,255,255,0.8)',borderTopColor:'transparent',borderRadius:'50%',animation:'spin 0.8s linear infinite'}}/>
+          </div>
           <div style={{color:'rgba(255,255,255,0.7)',fontSize:14,fontFamily:'sans-serif'}}>Cargando...</div>
         </div>
       </div>

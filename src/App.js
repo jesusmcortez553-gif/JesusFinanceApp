@@ -924,7 +924,11 @@ export default function App({ user, data, onLogout }) {
       setSaldoCuenta(prev => prev + monto);
     }
     const txFinal = {...txForm, categoria:categoriaFinal, monto, medioPago};
-    if(txEditId){setTxs(p=>p.map(t=>t.id===txEditId?{...txFinal,id:txEditId}:t));setTxEditId(null);}
+    if(txEditId){
+      setTxs(p=>p.map(t=>t.id===txEditId?{...txFinal,id:txEditId}:t));
+      if(data?.updateTx) data.updateTx(txEditId, txFinal).catch(()=>{});
+      setTxEditId(null);
+    }
     else { if(addTx) addTx({...txFinal}).catch(()=>{}); setTxs(p=>[...p,{...txFinal,id:Date.now()}]); }
     setLastMedioPago(medioPago);
     setTxForm({tipo:'gasto',categoria:'Alimentación',descripcion:'',monto:'',fecha:new Date().toISOString().split('T')[0]});
@@ -944,24 +948,62 @@ export default function App({ user, data, onLogout }) {
     setMedioPago(t.medioPago||'efectivo'); setShowDatePicker(false);
     setTab('agregar');
   };
-  const handleTxDel  = (id) => { if(window.confirm('¿Eliminar?')) setTxs(p=>p.filter(t=>t.id!==id)); };
+  const handleTxDel  = (id) => {
+    if(window.confirm('¿Eliminar?')) {
+      setTxs(p=>p.filter(t=>t.id!==id));
+      if(data?.deleteTx) data.deleteTx(id).catch(()=>{});
+    }
+  };
 
   const handlePresSubmit = () => {
     if(!presForm.categoria||!presForm.limite) return;
-    if(presEditId){setPresupuestos(p=>p.map(x=>x.id===presEditId?{...presForm,id:presEditId,limite:parseFloat(presForm.limite)}:x));setPresEditId(null);}
-    else setPresupuestos(p=>[...p,{...presForm,id:Date.now(),limite:parseFloat(presForm.limite)}]);
+    const obj = {...presForm, limite:parseFloat(presForm.limite)};
+    if(presEditId){
+      setPresupuestos(p=>p.map(x=>x.id===presEditId?{...obj,id:presEditId}:x));
+      if(data?.updatePres) data.updatePres(presEditId, obj).catch(()=>{});
+      setPresEditId(null);
+    } else {
+      const newId = Date.now();
+      setPresupuestos(p=>[...p,{...obj,id:newId}]);
+      if(data?.addPres) data.addPres(obj).catch(()=>{});
+    }
     setPresForm({categoria:'Alimentación',limite:''}); setShowPresForm(false);
   };
-  const handlePresDel = (id) => { if(window.confirm('¿Eliminar?')) setPresupuestos(p=>p.filter(x=>x.id!==id)); };
+  const handlePresDel = (id) => {
+    if(window.confirm('¿Eliminar?')) {
+      setPresupuestos(p=>p.filter(x=>x.id!==id));
+      if(data?.deletePres) data.deletePres(id).catch(()=>{});
+    }
+  };
 
   const handleMetaSubmit = () => {
     if(!metaForm.nombre||!metaForm.objetivo) return;
-    if(metaEditId){setMetas(p=>p.map(m=>m.id===metaEditId?{...metaForm,id:metaEditId,objetivo:parseFloat(metaForm.objetivo),actual:parseFloat(metaForm.actual||0)}:m));setMetaEditId(null);}
-    else setMetas(p=>[...p,{...metaForm,id:Date.now(),objetivo:parseFloat(metaForm.objetivo),actual:parseFloat(metaForm.actual||0)}]);
+    const obj = {...metaForm, objetivo:parseFloat(metaForm.objetivo), actual:parseFloat(metaForm.actual||0)};
+    if(metaEditId){
+      setMetas(p=>p.map(m=>m.id===metaEditId?{...obj,id:metaEditId}:m));
+      if(data?.updateMeta) data.updateMeta(metaEditId, obj).catch(()=>{});
+      setMetaEditId(null);
+    } else {
+      setMetas(p=>[...p,{...obj,id:Date.now()}]);
+      if(data?.addMeta) data.addMeta(obj).catch(()=>{});
+    }
     setMetaForm({nombre:'',objetivo:'',actual:'',color:'#6366f1'}); setShowMetaForm(false);
   };
-  const handleMetaDel  = (id) => { if(window.confirm('¿Eliminar?')) setMetas(p=>p.filter(m=>m.id!==id)); };
-  const handleAbonar   = () => { if(!abonarMonto) return; setMetas(p=>p.map(m=>m.id===abonarMetaId?{...m,actual:Math.min(m.objetivo,m.actual+parseFloat(abonarMonto))}:m)); setAbonarMetaId(null); setAbonarMonto(''); };
+  const handleMetaDel = (id) => {
+    if(window.confirm('¿Eliminar?')) {
+      setMetas(p=>p.filter(m=>m.id!==id));
+      if(data?.deleteMeta) data.deleteMeta(id).catch(()=>{});
+    }
+  };
+  const handleAbonar = () => {
+    if(!abonarMonto) return;
+    const meta = metas.find(m=>m.id===abonarMetaId);
+    if(!meta) return;
+    const nuevoActual = Math.min(meta.objetivo, meta.actual + parseFloat(abonarMonto));
+    setMetas(p=>p.map(m=>m.id===abonarMetaId?{...m,actual:nuevoActual}:m));
+    if(data?.updateMeta) data.updateMeta(abonarMetaId, {...meta,actual:nuevoActual}).catch(()=>{});
+    setAbonarMetaId(null); setAbonarMonto('');
+  };
 
   const handlePres2Submit = () => {
     if(!presForm2.nombre||!presForm2.cuotaMensual) return;
