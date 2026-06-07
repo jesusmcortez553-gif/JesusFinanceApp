@@ -155,34 +155,27 @@ const CIUDADES = ['lima','huancayo','satipo','cusco','arequipa','trujillo','iqui
 // Elimina el monto y la categoría del texto para guardar datos limpios
 const limpiarDescripcion = (texto, monto, categoria) => {
   if (!texto) return texto;
-  let limpio = texto.trim();
 
-  // Eliminar el monto si aparece (exacto, al inicio o al final)
-  if (monto) {
-    const montoStr = String(monto).replace('.', '\.');
-    // Al final: "chaufa 31" o "chaufa 31 soles"
-    limpio = limpio.replace(new RegExp(`\s+${montoStr}\s*(?:soles?|s\/)?\s*$`, 'i'), '');
-    // Al inicio: "31 chaufa"
-    limpio = limpio.replace(new RegExp(`^\s*${montoStr}\s*(?:soles?|s\/)?\s+`, 'i'), '');
-  }
+  // Separar palabras y filtrar el monto y la categoría
+  const palabrasOriginales = texto.trim().split(/\s+/);
+  const montoStr = monto ? String(monto) : null;
+  const palabrasCat = categoria
+    ? categoria.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').split(/\s+/)
+    : [];
 
-  // Eliminar nombre de categoría si aparece (al inicio o al final)
-  if (categoria) {
-    const catNorm = categoria.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
-    const catRegex = new RegExp(`(^\s*${catNorm}\s+|\s+${catNorm}\s*$)`, 'i');
-    limpio = limpio.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(catRegex, '');
-    // Restaurar texto original sin la categoría
-    const palabrasOriginales = texto.trim().split(/\s+/);
-    const palabrasCat = categoria.toLowerCase().split(/\s+/);
-    const filtradas = palabrasOriginales.filter(p => 
-      !palabrasCat.includes(p.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''))
-      && p !== String(monto)
-    );
-    limpio = filtradas.join(' ');
-  }
+  // Identificar qué número es el monto (ignorar números que no sean el monto)
+  const filtradas = palabrasOriginales.filter(p => {
+    const pNorm = p.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+    const pSinSoles = pNorm.replace(/soles?/, '').trim();
+    // Eliminar si es el monto exacto
+    if (montoStr && (pSinSoles === montoStr || p === montoStr)) return false;
+    // Eliminar si es palabra de la categoría
+    if (palabrasCat.includes(pNorm)) return false;
+    return true;
+  });
 
+  let limpio = filtradas.join(' ').trim();
   // Capitalizar primera letra
-  limpio = limpio.trim();
   if (limpio.length > 0) limpio = limpio.charAt(0).toUpperCase() + limpio.slice(1);
   return limpio || texto.trim();
 };
