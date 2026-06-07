@@ -11,7 +11,7 @@ import {
   Pencil, Trash2, User, ChevronRight, Calendar,
   AlertTriangle, CheckCircle, Flag, PiggyBank, X,
   CreditCard, Landmark, Clock, TrendingDown,
-  Receipt, Utensils, Plane, Moon, Users, UserCheck
+  Receipt, Utensils, Plane, Moon, Users, UserCheck, Dumbbell
 } from 'lucide-react';
 
 // ─── DATOS INICIALES ──────────────────────────────────────────────────────────
@@ -38,7 +38,7 @@ const CAT_ICONOS = {
   'Inversión':     { icon: TrendingUp,   color: '#0891b2' },
   'Disposición TC':{ icon: CreditCard,   color: '#dc2626' },
 };
-const CATS_GASTO   = ['Alimentación','Salidas','Transporte','Viajes','Servicios','Salud','Entretenimiento','Vida nocturna','Educación','Ropa','Hogar','Familiar','Social','Regalo','Mascotas','Otros'];
+const CATS_GASTO   = ['Alimentación','Salidas','Transporte','Viajes','Servicios','Salud','Deporte','Entretenimiento','Vida nocturna','Educación','Ropa','Hogar','Familiar','Social','Regalo','Mascotas','Otros'];
 const CATS_INGRESO = ['Salario','Negocio','Freelance','Inversión','Disposición TC','Regalo','Otros'];
 const MESES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 
@@ -91,8 +91,14 @@ const DICCIONARIO = {
   'Salud': [
     'farmaci','botic','inkafarm','mifarm','doctor','medic','clinic','hospital',
     'consult','analis','laborator','medicament','pastill','medicin','vitamina',
-    'essalud','optic','dentist','psicolog','nutricion','terapia','vacun',
-    'emergencia','gimnasi','yoga','pilates','crossfit',
+    'essalud','optic','dentist','psicolog','nutricion','terapia','vacun','emergencia',
+  ],
+  'Deporte': [
+    'gimnasi','gym','yoga','pilates','crossfit','zumba',
+    'voley','futbol','fulbito','cancha','partido deport','basquet','tenis','natacion',
+    'running','correr','ciclismo','biciclet deport','boxeo','artes marciales',
+    'proteina','suplemento deport','pesas','implemento deport',
+    'inscripcion deport','matricula deport','mensualidad gym',
   ],
   'Entretenimiento': [
     'cine','cinemark','cineplanet','concert','event','teatro','obra',
@@ -156,26 +162,38 @@ const CIUDADES = ['lima','huancayo','satipo','cusco','arequipa','trujillo','iqui
 const limpiarDescripcion = (texto, monto, categoria) => {
   if (!texto) return texto;
 
-  // Separar palabras y filtrar el monto y la categoría
-  const palabrasOriginales = texto.trim().split(/\s+/);
-  const montoStr = monto ? String(monto) : null;
-  const palabrasCat = categoria
-    ? categoria.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').split(/\s+/)
-    : [];
+  const norm = (s) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 
-  // Identificar qué número es el monto (ignorar números que no sean el monto)
-  const filtradas = palabrasOriginales.filter(p => {
-    const pNorm = p.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
-    const pSinSoles = pNorm.replace(/soles?/, '').trim();
-    // Eliminar si es el monto exacto
-    if (montoStr && (pSinSoles === montoStr || p === montoStr)) return false;
-    // Eliminar si es palabra de la categoría
-    if (palabrasCat.includes(pNorm)) return false;
-    return true;
-  });
+  // 1. Eliminar frase de categoría completa del texto
+  let limpio = texto.trim();
+  if (categoria) {
+    const catNorm = norm(categoria);
+    const textoNorm = norm(limpio);
+    if (textoNorm.includes(catNorm)) {
+      const idx = textoNorm.indexOf(catNorm);
+      limpio = (limpio.slice(0, idx) + limpio.slice(idx + categoria.length)).trim();
+    }
+  }
 
-  let limpio = filtradas.join(' ').trim();
-  // Capitalizar primera letra
+  // 2. Eliminar el monto — solo UNA ocurrencia (la última para respetar cantidades)
+  if (monto) {
+    const palabras = limpio.split(' ').filter(p => p.length > 0);
+    let montoEliminado = false;
+    const filtradas = [];
+    for (let i = palabras.length - 1; i >= 0; i--) {
+      const p = palabras[i];
+      const pNum = parseFloat(p.replace(/[^0-9.]/g, ''));
+      if (!montoEliminado && !isNaN(pNum) && pNum > 0 && Math.abs(pNum - monto) < 0.01) {
+        montoEliminado = true;
+        continue;
+      }
+      filtradas.unshift(p);
+    }
+    limpio = filtradas.join(' ').trim();
+  }
+
+  // 3. Limpiar y capitalizar
+  limpio = limpio.replace(/  +/g, ' ').trim();
   if (limpio.length > 0) limpio = limpio.charAt(0).toUpperCase() + limpio.slice(1);
   return limpio || texto.trim();
 };
