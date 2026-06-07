@@ -11,7 +11,7 @@ import {
   Pencil, Trash2, User, ChevronRight, Calendar,
   AlertTriangle, CheckCircle, Flag, PiggyBank, X,
   CreditCard, Landmark, Clock, TrendingDown,
-  Receipt, Utensils, Plane, Moon, Users, UserCheck
+  Receipt, Utensils, Plane, Moon, Users, UserCheck, Trophy
 } from 'lucide-react';
 
 // ─── DATOS INICIALES ──────────────────────────────────────────────────────────
@@ -129,6 +129,9 @@ const DICCIONARIO = {
     'muebl','refrigerad','lavador','microond','licuador','planch',
     'olla','sarten','vajill','foco','pila','ferreteria','sodimac','promart',
     'detergent','lejia','desinfect','escob','trapeador','papel higien',
+    'jabon','jaboncillo','shampoo','acondicionador','gel ducha','crema corporal',
+    'pasta dental','cepillo dientes','desodorante','toalla higien',
+    'ambientador','lustramuebles','cera piso','quita grasa',
   ],
   'Familiar': [
     'familia','familiar','mamá','mama','papá','papa',
@@ -313,7 +316,7 @@ const clasificarGasto = (descripcion, monto = 0) => {
   // CAPA 6: Diccionario + monto + horario
   let mejorCat = null; let mejorScore = 0;
   for (const [cat, palabras] of Object.entries(DICCIONARIO)) {
-    if (['Vida nocturna','Familiar','Social','Regalo'].includes(cat)) continue;
+    if (['Vida nocturna','Familiar','Social','Regalo'].includes(cat)) continue; // Deporte se clasifica normalmente
     for (const palabra of palabras) {
       const p = palabra.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
       if (texto.includes(p) && p.length > mejorScore) { mejorScore = p.length; mejorCat = cat; }
@@ -823,7 +826,7 @@ export default function App({ user, data, onLogout }) {
 
   const areaData = useMemo(()=>{ const d={}; txs.filter(t=>t.tipo==='gasto'&&t.fecha.startsWith('2026-05')).forEach(t=>{const n=parseInt(t.fecha.split('-')[2]);d[n]=(d[n]||0)+t.monto;}); return Array.from({length:28},(_,i)=>({dia:`${i+1}`,monto:d[i+1]||0})); },[txs]);
   const barData  = useMemo(()=>{ const m={}; txs.forEach(t=>{const mes=MESES[parseInt(t.fecha.split('-')[1])-1]; if(!m[mes])m[mes]={mes,ingresos:0,gastos:0}; m[mes][t.tipo==='ingreso'?'ingresos':'gastos']+=t.monto;}); return Object.values(m); },[txs]);
-  const catData  = useMemo(()=>Object.entries(gastoPorCat).sort((a,b)=>b[1]-a[1]).slice(0,5),[gastoPorCat]);
+  const catData  = useMemo(()=>Object.entries(gastoPorCat).sort((a,b)=>b[1]-a[1]).slice(0,8),[gastoPorCat]);
   const maxGasto = Math.max(...catData.map(c=>c[1]),1);
   const recentTxs= useMemo(()=>[...txs].reverse().slice(0,showAll?50:5),[txs,showAll]);
   const topDay   = useMemo(()=>{ const d={}; txs.filter(t=>t.tipo==='gasto').forEach(t=>{d[t.fecha]=(d[t.fecha]||0)+t.monto;}); return Object.entries(d).sort((a,b)=>b[1]-a[1])[0]; },[txs]);
@@ -1789,12 +1792,16 @@ export default function App({ user, data, onLogout }) {
                 if (tasaAhorro >= 20) insights.push({ color:'#10b981', bg:'#f0fdf4', border:'#bbf7d0', emoji:'🎯', titulo:`Ahorras el ${tasaAhorro.toFixed(1)}% de tus ingresos`, texto:`Estás por encima del 20% recomendado. Cada mes guardas ${fmt(stats.balance)} que trabajan para ti.` });
                 else if (tasaAhorro > 0) insights.push({ color:'#f59e0b', bg:'#fffbeb', border:'#fde68a', emoji:'📊', titulo:`Ahorro al ${tasaAhorro.toFixed(1)}%`, texto:`Para llegar al 20% recomendado necesitas ahorrar ${fmt(stats.ingresos*0.2)} al mes. Te faltan ${fmt(stats.ingresos*0.2-stats.balance)}.` });
 
-                if (topCat) insights.push({ color:'#7c3aed', bg:'#f5f3ff', border:'#ddd6fe', emoji:'🔍', titulo:`${topCat[0]} es tu mayor gasto`, texto:`Represents el ${Math.round(topCat[1]/stats.gastos*100)}% de tus gastos totales — equivale a ${fmt(topCat[1])} este mes.` });
+                if (topCat && topCat[0] !== 'Deporte') insights.push({ color:'#7c3aed', bg:'#f5f3ff', border:'#ddd6fe', emoji:'🔍', titulo:`${topCat[0]} es tu mayor gasto`, texto:`Represents el ${Math.round(topCat[1]/stats.gastos*100)}% de tus gastos totales — equivale a ${fmt(topCat[1])} este mes.` });
 
                 if (diaMasGasto && porDia[diaMasGasto[0]] > 0) insights.push({ color:'#0891b2', bg:'#eff6ff', border:'#bfdbfe', emoji:'📅', titulo:`Los ${diasSemana[diaMasGasto[0]]} gastas más`, texto:`${fmt(diaMasGasto[1])} en total. Estar consciente de este patrón es el primer paso para cambiarlo.` });
 
                 if (pctTC > 50) insights.push({ color:'#ef4444', bg:'#fef2f2', border:'#fecaca', emoji:'💳', titulo:`${pctTC}% de tus gastos van a TC`, texto:`Más de la mitad de tus gastos acumulan deuda. Cuando puedas, prioriza pagar con efectivo para no inflar el consumido.` });
                 else if (pctTC > 0) insights.push({ color:'#10b981', bg:'#f0fdf4', border:'#bbf7d0', emoji:'💳', titulo:`Solo el ${pctTC}% va a TC`, texto:`Buen balance. Usas la tarjeta con moderación. Sigue así y tu deuda TC será manejable.` });
+
+                // Insight positivo si gasta en deporte
+                const gastoDeporte = txs.filter(t=>t.tipo==='gasto'&&t.categoria==='Deporte').reduce((s,t)=>s+t.monto,0);
+                if (gastoDeporte > 0) insights.push({ color:'#16a34a', bg:'#f0fdf4', border:'#bbf7d0', emoji:'🏆', titulo:'Inviertes en tu salud física', texto:`Has gastado ${fmt(gastoDeporte)} en deporte. Eso no es un gasto — es una inversión en tu energía y rendimiento.` });
 
                 if (cuotasMes > 0 && stats.ingresos > 0) {
                   const ratio = Math.round(cuotasMes/stats.ingresos*100);
