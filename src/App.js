@@ -151,6 +151,42 @@ const CIUDADES = ['lima','huancayo','satipo','cusco','arequipa','trujillo','iqui
   'tarapoto','pucallpa','piura','chiclayo','ayacucho','huaraz','cajamarca',
   'tacna','puno','juliaca','nazca','paracas'];
 
+// ─── LIMPIAR DESCRIPCIÓN ANTES DE GUARDAR ───────────────────────────────────
+// Elimina el monto y la categoría del texto para guardar datos limpios
+const limpiarDescripcion = (texto, monto, categoria) => {
+  if (!texto) return texto;
+  let limpio = texto.trim();
+
+  // Eliminar el monto si aparece (exacto, al inicio o al final)
+  if (monto) {
+    const montoStr = String(monto).replace('.', '\.');
+    // Al final: "chaufa 31" o "chaufa 31 soles"
+    limpio = limpio.replace(new RegExp(`\s+${montoStr}\s*(?:soles?|s\/)?\s*$`, 'i'), '');
+    // Al inicio: "31 chaufa"
+    limpio = limpio.replace(new RegExp(`^\s*${montoStr}\s*(?:soles?|s\/)?\s+`, 'i'), '');
+  }
+
+  // Eliminar nombre de categoría si aparece (al inicio o al final)
+  if (categoria) {
+    const catNorm = categoria.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+    const catRegex = new RegExp(`(^\s*${catNorm}\s+|\s+${catNorm}\s*$)`, 'i');
+    limpio = limpio.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(catRegex, '');
+    // Restaurar texto original sin la categoría
+    const palabrasOriginales = texto.trim().split(/\s+/);
+    const palabrasCat = categoria.toLowerCase().split(/\s+/);
+    const filtradas = palabrasOriginales.filter(p => 
+      !palabrasCat.includes(p.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''))
+      && p !== String(monto)
+    );
+    limpio = filtradas.join(' ');
+  }
+
+  // Capitalizar primera letra
+  limpio = limpio.trim();
+  if (limpio.length > 0) limpio = limpio.charAt(0).toUpperCase() + limpio.slice(1);
+  return limpio || texto.trim();
+};
+
 // ─── EXTRAER MONTO DE DESCRIPCIÓN ───────────────────────────────────────────
 const extraerMonto = (texto) => {
   if (!texto) return { desc: texto, monto: null };
@@ -907,10 +943,11 @@ export default function App({ user, data, onLogout }) {
     // ── FLUJO NORMAL ──
     let categoriaFinal = txForm.categoria;
     if (txForm.tipo === 'gasto' && autoClasif && !autoClasif.elegida) {
-      // Re-clasificar con el monto real al momento de guardar
       const reclasif = clasificarGasto(txForm.descripcion, monto);
       categoriaFinal = reclasif ? reclasif.categoria : autoClasif.categoria;
     }
+    // Limpiar descripción antes de guardar — elimina monto y categoría del texto
+    const descLimpia = limpiarDescripcion(txForm.descripcion, monto, categoriaFinal);
     // FASE E: Si paga con efectivo → descuenta del saldo
     if (txForm.tipo === 'gasto' && medioPago === 'efectivo' && saldoCuenta !== null) {
       setSaldoCuenta(prev => Math.max(0, prev - monto));
@@ -923,7 +960,7 @@ export default function App({ user, data, onLogout }) {
     if (txForm.tipo === 'ingreso' && saldoCuenta !== null && tipoEspecial !== 'disposicion') {
       setSaldoCuenta(prev => prev + monto);
     }
-    const txFinal = {...txForm, categoria:categoriaFinal, monto, medioPago};
+    const txFinal = {...txForm, descripcion:descLimpia, categoria:categoriaFinal, monto, medioPago};
     if(txEditId){
       setTxs(p=>p.map(t=>t.id===txEditId?{...txFinal,id:txEditId}:t));
       if(data?.updateTx) data.updateTx(txEditId, txFinal).catch(()=>{});
