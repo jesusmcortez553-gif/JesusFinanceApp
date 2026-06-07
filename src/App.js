@@ -11,7 +11,7 @@ import {
   Pencil, Trash2, User, ChevronRight, Calendar,
   AlertTriangle, CheckCircle, Flag, PiggyBank, X,
   CreditCard, Landmark, Clock, TrendingDown,
-  Receipt, Utensils, Plane, Moon, Users, UserCheck, Dumbbell
+  Receipt, Utensils, Plane, Moon, Users, UserCheck, Activity
 } from 'lucide-react';
 
 // ─── DATOS INICIALES ──────────────────────────────────────────────────────────
