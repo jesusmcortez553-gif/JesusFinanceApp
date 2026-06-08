@@ -998,15 +998,16 @@ export default function App({ user, data, onLogout }) {
     if(txEditId){
       // Editar — preservar id y createdAt originales
       const txEditada = {...txForm, descripcion:descLimpia, categoria:categoriaFinal, monto, medioPago};
-      setTxs(p=>p.map(t=>t.id===txEditId?{...txEditada,id:txEditId}:t));
+      // Actualizar en Firebase — el ID de Firestore es string
       if(data?.updateTx) data.updateTx(String(txEditId), txEditada).catch(()=>{});
+      else setTxs(p=>p.map(t=>t.id===txEditId?{...txEditada,id:txEditId}:t));
       setTxEditId(null);
     } else {
-      // Nueva transacción
+      // Nueva transacción — solo guardar en Firebase, onSnapshot actualizará el estado
       const newId = Date.now();
-      const txFinal = {...txForm, descripcion:descLimpia, categoria:categoriaFinal, monto, medioPago, id:newId, createdAt:newId};
+      const txFinal = {...txForm, descripcion:descLimpia, categoria:categoriaFinal, monto, medioPago, createdAt:newId};
       if(addTx) addTx({...txFinal}).catch(()=>{});
-      setTxs(p=>[...p, txFinal]);
+      else setTxs(p=>[...p, {...txFinal, id:newId}]); // fallback sin Firebase
     }
     setLastMedioPago(medioPago);
     setTxForm({tipo:'gasto',categoria:'Alimentación',descripcion:'',monto:'',fecha:(()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;})()});
@@ -1028,8 +1029,8 @@ export default function App({ user, data, onLogout }) {
   };
   const handleTxDel  = (id) => {
     if(window.confirm('¿Eliminar?')) {
-      setTxs(p=>p.filter(t=>t.id!==id));
-      if(data?.deleteTx) data.deleteTx(id).catch(()=>{});
+      if(data?.deleteTx) data.deleteTx(String(id)).catch(()=>{});
+      else setTxs(p=>p.filter(t=>t.id!==id));
     }
   };
 
