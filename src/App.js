@@ -996,11 +996,11 @@ export default function App({ user, data, onLogout }) {
       setSaldoCuenta(prev => prev + monto);
     }
     if(txEditId){
-      // Editar — preservar id y createdAt originales
       const txEditada = {...txForm, descripcion:descLimpia, categoria:categoriaFinal, monto, medioPago};
-      // Actualizar en Firebase — el ID de Firestore es string
+      // Actualizar estado local inmediatamente
+      setTxs(p=>p.map(t=>String(t.id)===String(txEditId)?{...txEditada,id:t.id}:t));
+      // Actualizar Firebase
       if(data?.updateTx) data.updateTx(String(txEditId), txEditada).catch(()=>{});
-      else setTxs(p=>p.map(t=>t.id===txEditId?{...txEditada,id:txEditId}:t));
       setTxEditId(null);
     } else {
       // Nueva transacción — solo guardar en Firebase, onSnapshot actualizará el estado
@@ -1029,8 +1029,8 @@ export default function App({ user, data, onLogout }) {
   };
   const handleTxDel  = (id) => {
     if(window.confirm('¿Eliminar?')) {
+      setTxs(p=>p.filter(t=>String(t.id)!==String(id)));
       if(data?.deleteTx) data.deleteTx(String(id)).catch(()=>{});
-      else setTxs(p=>p.filter(t=>t.id!==id));
     }
   };
 
