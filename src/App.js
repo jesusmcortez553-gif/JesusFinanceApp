@@ -992,13 +992,19 @@ export default function App({ user, data, onLogout }) {
     if (txForm.tipo === 'ingreso' && saldoCuenta !== null && tipoEspecial !== 'disposicion') {
       setSaldoCuenta(prev => prev + monto);
     }
-    const txFinal = {...txForm, descripcion:descLimpia, categoria:categoriaFinal, monto, medioPago, id:Date.now(), createdAt:Date.now()};
     if(txEditId){
-      setTxs(p=>p.map(t=>t.id===txEditId?{...txFinal,id:txEditId}:t));
-      if(data?.updateTx) data.updateTx(txEditId, txFinal).catch(()=>{});
+      // Editar — preservar id y createdAt originales
+      const txEditada = {...txForm, descripcion:descLimpia, categoria:categoriaFinal, monto, medioPago};
+      setTxs(p=>p.map(t=>t.id===txEditId?{...txEditada,id:txEditId}:t));
+      if(data?.updateTx) data.updateTx(String(txEditId), txEditada).catch(()=>{});
       setTxEditId(null);
+    } else {
+      // Nueva transacción
+      const newId = Date.now();
+      const txFinal = {...txForm, descripcion:descLimpia, categoria:categoriaFinal, monto, medioPago, id:newId, createdAt:newId};
+      if(addTx) addTx({...txFinal}).catch(()=>{});
+      setTxs(p=>[...p, txFinal]);
     }
-    else { if(addTx) addTx({...txFinal}).catch(()=>{}); setTxs(p=>[...p,{...txFinal,id:Date.now()}]); }
     setLastMedioPago(medioPago);
     setTxForm({tipo:'gasto',categoria:'Alimentación',descripcion:'',monto:'',fecha:new Date().toISOString().split('T')[0]});
     setTipoEspecial(null); setAutoClasif(null); setAlertaEmoc(null); setAlertaAceptada(false);
