@@ -768,6 +768,13 @@ export default function App({ user, data, onLogout }) {
   const [presupuestos, setPresupuestos] = useState(INITIAL_PRESUPUESTOS);
   const [metas, setMetas]           = useState(INITIAL_METAS);
   const [tcs, setTcs]               = useState(INITIAL_TC);
+  const [showTcForm, setShowTcForm] = useState(false);
+  const [tcEditId, setTcEditId]     = useState(null);
+  const [tcForm, setTcForm]         = useState({
+    nombre:'', banco:'', numero:'', lineaTotal:'',
+    consumido:'', deudaActual:'', tea:'', diaCorte:'', diaPago:'',
+    color:'#b45309',
+  });
   const [prestamos, setPrestamos]   = useState(INITIAL_PRESTAMOS);
 
   // Sync Firebase data to local state
@@ -967,8 +974,9 @@ export default function App({ user, data, onLogout }) {
       setSaldoCuenta(prev => Math.max(0, prev - monto));
     }
     // Si paga con TC → sube consumido, NO resta saldo
-    if (txForm.tipo === 'gasto' && medioPago === 'tc') {
-      setTcs(prev => prev.map((tc,i) => i===0 ? { ...tc, consumido: tc.consumido + monto, deudaActual: tc.deudaActual + monto } : tc));
+    if (txForm.tipo === 'gasto' && medioPago.startsWith('tc')) {
+      const tcId = medioPago === 'tc' ? (tcs[0]?.id) : parseInt(medioPago.replace('tc_',''));
+      setTcs(prev => prev.map(tc => tc.id === tcId ? { ...tc, consumido: tc.consumido + monto, deudaActual: tc.deudaActual + monto } : tc));
     }
     // Si es ingreso → suma al saldo
     if (txForm.tipo === 'ingreso' && saldoCuenta !== null && tipoEspecial !== 'disposicion') {
@@ -1054,6 +1062,35 @@ export default function App({ user, data, onLogout }) {
     setMetas(p=>p.map(m=>m.id===abonarMetaId?{...m,actual:nuevoActual}:m));
     if(data?.updateMeta) data.updateMeta(abonarMetaId, {...meta,actual:nuevoActual}).catch(()=>{});
     setAbonarMetaId(null); setAbonarMonto('');
+  };
+
+  const handleTcSubmit = () => {
+    if (!tcForm.banco || !tcForm.lineaTotal) return;
+    const tc = {
+      nombre: tcForm.nombre || `Tarjeta ${tcForm.banco}`,
+      banco: tcForm.banco,
+      numero: tcForm.numero || '****0000',
+      lineaTotal: parseFloat(tcForm.lineaTotal) || 0,
+      consumido: parseFloat(tcForm.consumido) || 0,
+      deudaActual: parseFloat(tcForm.deudaActual) || 0,
+      tea: parseFloat(tcForm.tea) || 0,
+      diaCorte: parseInt(tcForm.diaCorte) || 25,
+      diaPago: parseInt(tcForm.diaPago) || 22,
+      color: tcForm.color || '#b45309',
+      gradiente: 'linear-gradient(135deg,#92400e,#b45309,#d97706)',
+    };
+    if (tcEditId) {
+      setTcs(p => p.map(t => t.id === tcEditId ? {...tc, id:tcEditId} : t));
+      setTcEditId(null);
+    } else {
+      setTcs(p => [...p, {...tc, id: Date.now()}]);
+    }
+    setTcForm({nombre:'',banco:'',numero:'',lineaTotal:'',consumido:'',deudaActual:'',tea:'',diaCorte:'',diaPago:'',color:'#b45309'});
+    setShowTcForm(false);
+  };
+
+  const handleTcDel = (id) => {
+    if (window.confirm('¿Eliminar tarjeta?')) setTcs(p => p.filter(t => t.id !== id));
   };
 
   const handlePres2Submit = () => {
@@ -1305,7 +1342,7 @@ export default function App({ user, data, onLogout }) {
                 <div style={{marginBottom:14}}>
                   <label style={S.label}>¿Cómo pagaste?</label>
                   <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
-                    {[{id:'efectivo',label:'Efectivo / Cuenta',sub:'Resta tu balance'},{id:'tc',label:'VISA ****2769',sub:'Sube deuda TC'}].map(mp=>(
+                    {[{id:'efectivo',label:'Efectivo / Cuenta',sub:'Resta tu balance'}, ...(tcs.length > 0 ? tcs.map(tc=>({id:`tc_${tc.id}`,label:`${tc.banco} ${tc.numero}`,sub:'Sube deuda TC'})) : [{id:'tc',label:'VISA ****2769',sub:'Agrega tu TC en Deudas'}])].map(mp=>(
                       <button key={mp.id} onClick={()=>setMedioPago(mp.id)}
                         style={{padding:'10px 12px',borderRadius:12,border:`2px solid ${medioPago===mp.id?'#7c3aed':'#f0eeff'}`,
                           background:medioPago===mp.id?'#f5f3ff':'#fafaf9',
@@ -1451,11 +1488,57 @@ export default function App({ user, data, onLogout }) {
               {/* TC */}
               {subTabDeudas==='tc' && (
                 <div>
-                  {tcs.map(tc=><TarjetaVisual key={tc.id} tc={tc}/>)}
-                  <div style={{background:'#f0f0f7',borderRadius:14,padding:'12px 14px',textAlign:'center',border:'2px dashed #c7d2fe',cursor:'pointer'}} onClick={()=>{}}>
-                    <Plus size={18} color="#6366f1" style={{margin:'0 auto 4px'}}/>
-                    <div style={{fontSize:12,color:'#6366f1',fontWeight:700}}>Agregar tarjeta</div>
-                  </div>
+                  {tcs.map(tc=>(
+                    <div key={tc.id} style={{position:'relative'}}>
+                      <TarjetaVisual tc={tc}/>
+                      <div style={{display:'flex',gap:6,marginTop:-8,marginBottom:12,justifyContent:'flex-end'}}>
+                        <button onClick={()=>{setTcEditId(tc.id);setTcForm({nombre:tc.nombre,banco:tc.banco,numero:tc.numero,lineaTotal:String(tc.lineaTotal),consumido:String(tc.consumido),deudaActual:String(tc.deudaActual),tea:String(tc.tea||''),diaCorte:String(tc.diaCorte||25),diaPago:String(tc.diaPago||22),color:tc.color||'#b45309'});setShowTcForm(true);}}
+                          style={{padding:'6px 10px',borderRadius:10,border:'none',background:'#f0f0f7',cursor:'pointer',display:'flex',alignItems:'center',gap:4,fontSize:11,color:'#6366f1',fontFamily:'inherit',fontWeight:600}}>
+                          <Pencil size={12}/>Editar
+                        </button>
+                        <button onClick={()=>handleTcDel(tc.id)}
+                          style={{padding:'6px 10px',borderRadius:10,border:'none',background:'#fef2f2',cursor:'pointer',display:'flex',alignItems:'center',gap:4,fontSize:11,color:'#ef4444',fontFamily:'inherit',fontWeight:600}}>
+                          <Trash2 size={12}/>Eliminar
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+
+                  <button onClick={()=>{setTcEditId(null);setTcForm({nombre:'',banco:'',numero:'',lineaTotal:'',consumido:'',deudaActual:'',tea:'',diaCorte:'',diaPago:'',color:'#b45309'});setShowTcForm(true);}}
+                    style={{width:'100%',padding:'12px',borderRadius:14,border:'2px dashed #c7d2fe',background:'#f0f0f7',color:'#6366f1',fontFamily:'inherit',fontWeight:700,fontSize:12,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:6,marginBottom:12}}>
+                    <Plus size={16}/>Agregar tarjeta de crédito
+                  </button>
+
+                  {showTcForm && (
+                    <div style={{...S.formCard,marginTop:4,border:'1px solid #e0e7ff'}}>
+                      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
+                        <span style={{fontSize:14,fontWeight:700,color:'#1f1b4b'}}>{tcEditId?'Editar tarjeta':'Nueva tarjeta'}</span>
+                        <button onClick={()=>{setShowTcForm(false);setTcEditId(null);}} style={{background:'none',border:'none',cursor:'pointer'}}><X size={18} color="#9ca3af"/></button>
+                      </div>
+                      {[
+                        {l:'Banco',k:'banco',t:'text',ph:'ej. BCP, Interbank, BBVA'},
+                        {l:'Nombre de la tarjeta',k:'nombre',t:'text',ph:'ej. VISA BCP LATAM Pass'},
+                        {l:'Últimos 4 dígitos',k:'numero',t:'text',ph:'****1234'},
+                        {l:'Línea de crédito total (S/.)',k:'lineaTotal',t:'number',ph:'0.00'},
+                        {l:'Consumido actual (S/.)',k:'consumido',t:'number',ph:'0.00'},
+                        {l:'Deuda actual (S/.)',k:'deudaActual',t:'number',ph:'0.00'},
+                        {l:'TEA % (tasa anual)',k:'tea',t:'number',ph:'34.33'},
+                        {l:'Día de corte',k:'diaCorte',t:'number',ph:'25'},
+                        {l:'Día límite de pago',k:'diaPago',t:'number',ph:'22'},
+                      ].map(f=>(
+                        <div key={f.k}>
+                          <label style={S.label}>{f.l}</label>
+                          <input style={S.input} type={f.t} placeholder={f.ph}
+                            value={tcForm[f.k]} onChange={e=>setTcForm(p=>({...p,[f.k]:e.target.value}))}
+                            onFocus={if_} onBlur={ib_}/>
+                        </div>
+                      ))}
+                      <button style={{...S.submitBtn,background:'linear-gradient(135deg,#92400e,#b45309)'}}
+                        onClick={handleTcSubmit}>
+                        <Plus size={16}/>{tcEditId?'Guardar cambios':'Agregar tarjeta'}
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
 
