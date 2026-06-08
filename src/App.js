@@ -996,11 +996,18 @@ export default function App({ user, data, onLogout }) {
       setSaldoCuenta(prev => prev + monto);
     }
     if(txEditId){
-      const txEditada = {...txForm, descripcion:descLimpia, categoria:categoriaFinal, monto, medioPago};
+      const txEditada = {
+        tipo: txForm.tipo,
+        descripcion: descLimpia,
+        categoria: categoriaFinal,
+        monto: monto,
+        fecha: txForm.fecha,
+        medioPago: medioPago,
+      };
       // Actualizar estado local inmediatamente
-      setTxs(p=>p.map(t=>String(t.id)===String(txEditId)?{...txEditada,id:t.id}:t));
-      // Actualizar Firebase
-      if(data?.updateTx) data.updateTx(String(txEditId), txEditada).catch(()=>{});
+      setTxs(p=>p.map(t=>String(t.id)===String(txEditId)?{...t,...txEditada}:t));
+      // Actualizar Firebase con campos explícitos
+      if(data?.updateTx) data.updateTx(String(txEditId), txEditada).catch(e=>console.error('updateTx failed:',e));
       setTxEditId(null);
     } else {
       // Nueva transacción — solo guardar en Firebase, onSnapshot actualizará el estado
