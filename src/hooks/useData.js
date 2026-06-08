@@ -33,8 +33,7 @@ export const useData = (userId) => {
     // Transacciones
     unsubs.push(onSnapshot(collection(db, 'users', userId, 'transacciones'), snap => {
       const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      data.sort((a, b) => (b.fecha || '').localeCompare(a.fecha || ''));
-      setTxs(data);
+      setTxs(data); // App.js maneja el orden
     }));
 
     // Presupuestos
@@ -86,7 +85,8 @@ export const useData = (userId) => {
 
   // ── CRUD Transacciones ──
   const addTx = async (tx) => {
-    await addDoc(userCol('transacciones'), tx);
+    const txConTimestamp = { ...tx, createdAt: tx.createdAt || Date.now() };
+    await addDoc(userCol('transacciones'), txConTimestamp);
     await actualizarStreak();
   };
   const updateTx = async (id, tx) => {

@@ -778,7 +778,9 @@ export default function App({ user, data, onLogout }) {
   const [prestamos, setPrestamos]   = useState(INITIAL_PRESTAMOS);
 
   // Sync Firebase data to local state
-  React.useEffect(() => { if (fbTxs && fbTxs.length > 0) setTxs(fbTxs); }, [fbTxs]);
+  React.useEffect(() => {
+    if (fbTxs) setTxs(fbTxs); // siempre sincronizar con Firebase (puede ser array vacío)
+  }, [fbTxs]);
   React.useEffect(() => { if (fbPres && fbPres.length > 0) setPresupuestos(fbPres); }, [fbPres]);
   React.useEffect(() => { if (fbMetas && fbMetas.length > 0) setMetas(fbMetas); }, [fbMetas]);
   const [chartPeriod, setChartPeriod] = useState('día');
@@ -840,9 +842,10 @@ export default function App({ user, data, onLogout }) {
       // Primero por fecha descendente
       const fechaDiff = new Date(b.fecha) - new Date(a.fecha);
       if (fechaDiff !== 0) return fechaDiff;
-      // Mismo día → orden de ingreso descendente (mayor id = más reciente)
-      // Si es "ayer", va al final del día → orden inverso
-      return (b.id||0) - (a.id||0);
+      // Mismo día → orden de ingreso (createdAt o id numérico)
+      const aTime = a.createdAt || (typeof a.id === 'number' ? a.id : 0);
+      const bTime = b.createdAt || (typeof b.id === 'number' ? b.id : 0);
+      return bTime - aTime;
     })
     .slice(0, showAll?50:5)
   ,[txs,showAll]);
