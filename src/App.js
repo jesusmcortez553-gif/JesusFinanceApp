@@ -835,7 +835,17 @@ export default function App({ user, data, onLogout }) {
   const barData  = useMemo(()=>{ const m={}; txs.forEach(t=>{const mes=MESES[parseInt(t.fecha.split('-')[1])-1]; if(!m[mes])m[mes]={mes,ingresos:0,gastos:0}; m[mes][t.tipo==='ingreso'?'ingresos':'gastos']+=t.monto;}); return Object.values(m); },[txs]);
   const catData  = useMemo(()=>Object.entries(gastoPorCat).sort((a,b)=>b[1]-a[1]).slice(0,8),[gastoPorCat]);
   const maxGasto = Math.max(...catData.map(c=>c[1]),1);
-  const recentTxs= useMemo(()=>[...txs].reverse().slice(0,showAll?50:5),[txs,showAll]);
+  const recentTxs= useMemo(()=>[...txs]
+    .sort((a,b)=>{
+      // Primero por fecha descendente
+      const fechaDiff = new Date(b.fecha) - new Date(a.fecha);
+      if (fechaDiff !== 0) return fechaDiff;
+      // Mismo día → orden de ingreso descendente (mayor id = más reciente)
+      // Si es "ayer", va al final del día → orden inverso
+      return (b.id||0) - (a.id||0);
+    })
+    .slice(0, showAll?50:5)
+  ,[txs,showAll]);
   const topDay   = useMemo(()=>{ const d={}; txs.filter(t=>t.tipo==='gasto').forEach(t=>{d[t.fecha]=(d[t.fecha]||0)+t.monto;}); return Object.entries(d).sort((a,b)=>b[1]-a[1])[0]; },[txs]);
 
   // Próximos vencimientos (TC + Préstamos)
@@ -982,7 +992,7 @@ export default function App({ user, data, onLogout }) {
     if (txForm.tipo === 'ingreso' && saldoCuenta !== null && tipoEspecial !== 'disposicion') {
       setSaldoCuenta(prev => prev + monto);
     }
-    const txFinal = {...txForm, descripcion:descLimpia, categoria:categoriaFinal, monto, medioPago};
+    const txFinal = {...txForm, descripcion:descLimpia, categoria:categoriaFinal, monto, medioPago, id:Date.now(), createdAt:Date.now()};
     if(txEditId){
       setTxs(p=>p.map(t=>t.id===txEditId?{...txFinal,id:txEditId}:t));
       if(data?.updateTx) data.updateTx(txEditId, txFinal).catch(()=>{});
