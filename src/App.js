@@ -1010,11 +1010,16 @@ export default function App({ user, data, onLogout }) {
       if(data?.updateTx) data.updateTx(String(txEditId), txEditada).catch(e=>console.error('updateTx failed:',e));
       setTxEditId(null);
     } else {
-      // Nueva transacción — solo guardar en Firebase, onSnapshot actualizará el estado
+      // Nueva transacción — Firebase es la fuente de verdad
       const newId = Date.now();
       const txFinal = {...txForm, descripcion:descLimpia, categoria:categoriaFinal, monto, medioPago, createdAt:newId};
-      if(addTx) addTx({...txFinal}).catch(()=>{});
-      else setTxs(p=>[...p, {...txFinal, id:newId}]); // fallback sin Firebase
+      if(addTx) {
+        addTx({...txFinal}).catch(e=>console.error('addTx failed:',e));
+        // Optimistic update — onSnapshot lo confirmará con el ID real de Firestore
+        setTxs(p=>[...p, {...txFinal, id:'temp_'+newId}]);
+      } else {
+        setTxs(p=>[...p, {...txFinal, id:newId}]);
+      }
     }
     setLastMedioPago(medioPago);
     setTxForm({tipo:'gasto',categoria:'Alimentación',descripcion:'',monto:'',fecha:(()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;})()});
