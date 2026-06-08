@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { getFirestore, enableIndexedDbPersistence } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: "AIzaSyAVfCIkS9YSR8QbpBog4AyM-CnqTm26ZUY",
@@ -16,5 +16,12 @@ export const auth     = getAuth(app);
 export const db       = getFirestore(app);
 export const provider = new GoogleAuthProvider();
 
-// Persistencia offline temporalmente desactivada para limpiar caché corrupto
-// enableIndexedDbPersistence(db);
+// Persistencia offline — guarda datos localmente cuando no hay internet
+// Al volver la conexión sincroniza automáticamente con Firebase
+enableIndexedDbPersistence(db).catch((err) => {
+  if (err.code === 'failed-precondition') {
+    console.warn('Persistencia offline no disponible: múltiples pestañas abiertas');
+  } else if (err.code === 'unimplemented') {
+    console.warn('Este navegador no soporta persistencia offline');
+  }
+});
