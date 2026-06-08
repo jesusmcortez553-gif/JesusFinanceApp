@@ -954,7 +954,7 @@ export default function App({ user, data, onLogout }) {
       nuevasTx.push({ id:Date.now()+1, tipo:'gasto', categoria:'Servicios', descripcion:'Interés disposición TC', monto:0, fecha });
       setTcs(prev => prev.map((tc,i) => i===0 ? { ...tc, consumido: tc.consumido + monto, deudaActual: tc.deudaActual + monto } : tc));
       setTxs(p=>[...p,...nuevasTx]);
-      setTxForm({tipo:'gasto',categoria:'Alimentación',descripcion:'',monto:'',fecha:new Date().toISOString().split('T')[0]});
+      setTxForm({tipo:'gasto',categoria:'Alimentación',descripcion:'',monto:'',fecha:(()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;})()});
       setTipoEspecial(null); setAutoClasif(null); setAlertaEmoc(null); setAlertaAceptada(false);
       setTab('home');
       return;
@@ -965,7 +965,7 @@ export default function App({ user, data, onLogout }) {
       setTcs(prev => prev.map((tc,i) => i===0 ? { ...tc, consumido: Math.max(0, tc.consumido - monto), deudaActual: Math.max(0, tc.deudaActual - monto) } : tc));
       nuevasTx.push({ ...txForm, id:Date.now(), monto, categoria:'Servicios', descripcion:'Pago tarjeta de crédito' });
       setTxs(p=>[...p,...nuevasTx]);
-      setTxForm({tipo:'gasto',categoria:'Alimentación',descripcion:'',monto:'',fecha:new Date().toISOString().split('T')[0]});
+      setTxForm({tipo:'gasto',categoria:'Alimentación',descripcion:'',monto:'',fecha:(()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;})()});
       setTipoEspecial(null); setAutoClasif(null); setAlertaEmoc(null); setAlertaAceptada(false);
       setTab('home');
       return;
@@ -1006,7 +1006,7 @@ export default function App({ user, data, onLogout }) {
       setTxs(p=>[...p, txFinal]);
     }
     setLastMedioPago(medioPago);
-    setTxForm({tipo:'gasto',categoria:'Alimentación',descripcion:'',monto:'',fecha:new Date().toISOString().split('T')[0]});
+    setTxForm({tipo:'gasto',categoria:'Alimentación',descripcion:'',monto:'',fecha:(()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;})()});
     setTipoEspecial(null); setAutoClasif(null); setAlertaEmoc(null); setAlertaAceptada(false);
     setShowDatePicker(false);
     setTab('home');
@@ -1014,7 +1014,7 @@ export default function App({ user, data, onLogout }) {
   const openAdd = () => {
     setTxEditId(null); setAutoClasif(null); setAlertaEmoc(null); setAlertaAceptada(false);
     setMedioPago(lastMedioPago); setShowDatePicker(false);
-    setTxForm({tipo:'gasto',categoria:'Alimentación',descripcion:'',monto:'',fecha:new Date().toISOString().split('T')[0]});
+    setTxForm({tipo:'gasto',categoria:'Alimentación',descripcion:'',monto:'',fecha:(()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;})()});
     setTab('agregar');
   };
   const handleTxEdit = (t) => {
@@ -1331,7 +1331,7 @@ export default function App({ user, data, onLogout }) {
               {/* Fecha — hoy por defecto, botón ayer, picker opcional */}
               <label style={S.label}>¿Cuándo fue?</label>
               <div style={{display:'flex',gap:8,marginBottom:showDatePicker?8:12}}>
-                {[{label:'Hoy',val:new Date().toISOString().split('T')[0]},{label:'Ayer',val:new Date(Date.now()-86400000).toISOString().split('T')[0]}].map(op=>(
+                {(()=>{ const hoyDate=new Date(); const ayerDate=new Date(); ayerDate.setDate(ayerDate.getDate()-1); const fmtLocal=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; return [{label:'Hoy',val:fmtLocal(hoyDate)},{label:'Ayer',val:fmtLocal(ayerDate)}]; })().map(op=>(
                   <button key={op.label} onClick={()=>{setTxForm(p=>({...p,fecha:op.val}));setShowDatePicker(false);}}
                     style={{flex:1,padding:'10px',borderRadius:12,border:`2px solid ${txForm.fecha===op.val&&!showDatePicker?'#7c3aed':'#f0eeff'}`,
                       background:txForm.fecha===op.val&&!showDatePicker?'#f5f3ff':'#fafaf9',
