@@ -777,9 +777,12 @@ export default function App({ user, data, onLogout }) {
   });
   const [prestamos, setPrestamos]   = useState(INITIAL_PRESTAMOS);
 
-  // Sync Firebase data to local state
+  // Sync Firebase data to local state — Firebase es la única fuente de verdad
   React.useEffect(() => {
-    if (fbTxs) setTxs(fbTxs); // siempre sincronizar con Firebase (puede ser array vacío)
+    if (fbTxs !== undefined) {
+      // Solo usar datos de Firebase — elimina cualquier item local con ID numérico
+      setTxs(fbTxs);
+    }
   }, [fbTxs]);
   React.useEffect(() => { if (fbPres && fbPres.length > 0) setPresupuestos(fbPres); }, [fbPres]);
   React.useEffect(() => { if (fbMetas && fbMetas.length > 0) setMetas(fbMetas); }, [fbMetas]);
