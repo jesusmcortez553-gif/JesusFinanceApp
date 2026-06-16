@@ -24,7 +24,7 @@ export const CAT_ICONOS = {
   'Salario':       { icon: Briefcase,    color: '#10b981' },
   'Negocio':       { icon: Store,        color: '#059669' },
   'Freelance':     { icon: Monitor,      color: '#0d9488' },
-  'Inversión':     { icon: TrendingUp,   color: '#0891b2' },
+  'Inversión':     { icon: Target,       color: '#0891b2' },
   'Disposición TC':{ icon: CreditCard,   color: '#dc2626' },
 };
 
