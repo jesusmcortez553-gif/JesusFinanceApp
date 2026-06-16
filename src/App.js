@@ -8,7 +8,7 @@ import {
   ArrowUpCircle, ArrowDownCircle, Wallet,
   Pencil, Trash2, User, ChevronRight, Calendar,
   AlertTriangle, CheckCircle, PiggyBank, X,
-  CreditCard, Landmark, Clock, TrendingDown, TrendingUp, Receipt, Search,
+  CreditCard, Landmark, Clock, TrendingDown, TrendingUp, Receipt, Search, Flame,
 } from 'lucide-react';
 import { CAT_ICONOS, CATS_GASTO, CATS_INGRESO, MESES, PALABRAS_SALARIO, PALABRAS_DISPOSICION, PALABRAS_PAGO_TC } from './constants/categorias';
 import { fmt, fmtInt, fmtFecha, diasHasta, urgenciaColor } from './utils/format';
@@ -454,7 +454,7 @@ export default function App({ user, data, onLogout }) {
                 <div style={{display:'flex',alignItems:'center',gap:10}}>
                   {streak && streak.dias > 0 && (
                     <div style={{display:'flex',alignItems:'center',gap:4,background:'rgba(255,255,255,0.15)',borderRadius:20,padding:'4px 10px'}}>
-                      <span style={{fontSize:14}}>ðŸ”¥</span>
+                      <Flame size={14} color="#f97316"/>
                       <span style={{color:'#fff',fontSize:12,fontWeight:700}}>{streak.dias}</span>
                     </div>
                   )}
@@ -953,7 +953,7 @@ export default function App({ user, data, onLogout }) {
                     <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginTop:4}}>
                       <button onClick={()=>{sugs.forEach(s=>{setPresupuestos(prev=>[...prev,{id:Date.now()+Math.random(),categoria:s.categoria,limite:s.sugerido}]);if(addPres) addPres({categoria:s.categoria,limite:s.sugerido}).catch(()=>{});});setSugerenciasDescartadas(true);}}
                         style={{padding:'10px',borderRadius:12,border:'none',background:'#fff',color:'#0f766e',fontWeight:800,fontSize:13,fontFamily:'inherit',cursor:'pointer'}}>
-                        Activar todos
+                        âœ“ Activar todos
                       </button>
                       <button onClick={()=>setSugerenciasDescartadas(true)}
                         style={{padding:'10px',borderRadius:12,border:'1.5px solid rgba(255,255,255,0.4)',background:'transparent',color:'rgba(255,255,255,0.8)',fontWeight:700,fontSize:13,fontFamily:'inherit',cursor:'pointer'}}>
