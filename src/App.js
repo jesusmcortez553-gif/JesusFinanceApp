@@ -110,13 +110,13 @@ export default function App({ user, data, onLogout }) {
   React.useEffect(() => { if (fbTxs !== undefined) setTxs(fbTxs); }, [fbTxs]);
   React.useEffect(() => { if (fbPres !== undefined) setPresupuestos(fbPres); }, [fbPres]);
   React.useEffect(() => { if (fbMetas !== undefined) setMetas(fbMetas); }, [fbMetas]);
-  const [chartPeriod, setChartPeriod] = useState('dÃ­a');
+  const [chartPeriod, setChartPeriod] = useState('día');
   const [showAll, setShowAll] = useState(false);
   const [subTabDeudas, setSubTabDeudas] = useState('tc');
 
   // Formulario TX
   const hoy = new Date().toISOString().split('T')[0];
-  const [txForm, setTxForm]     = useState({ tipo:'gasto', categoria:'AlimentaciÃ³n', descripcion:'', monto:'', fecha:hoy });
+  const [txForm, setTxForm]     = useState({ tipo:'gasto', categoria:'Alimentación', descripcion:'', monto:'', fecha:hoy });
   const [txEditId, setTxEditId] = useState(null);
   const [autoClasif, setAutoClasif] = useState(null);
   const [alertaEmoc, setAlertaEmoc] = useState(null);
@@ -129,7 +129,7 @@ export default function App({ user, data, onLogout }) {
   const [showDatePicker, setShowDatePicker] = useState(false);
 
   // Formulario presupuestos
-  const [presForm, setPresForm]     = useState({ categoria:'AlimentaciÃ³n', limite:'' });
+  const [presForm, setPresForm]     = useState({ categoria:'Alimentación', limite:'' });
   const [presEditId, setPresEditId] = useState(null);
   const [showPresForm, setShowPresForm] = useState(false);
   const [sugerenciasDescartadas, setSugerenciasDescartadas] = useState(false);
@@ -145,7 +145,7 @@ export default function App({ user, data, onLogout }) {
   const [showSaldoSetup, setShowSaldoSetup] = useState(false);
   const [saldoInput, setSaldoInput]   = useState('');
 
-  // Formulario prÃ©stamo
+  // Formulario préstamo
   const [showPresForm2, setShowPresForm2] = useState(false);
   const [presForm2, setPresForm2] = useState({ nombre:'', banco:'', numero:'', montoOriginal:'', capitalPendiente:'', cuotaMensual:'', proximoPago:'', tea:'', tcea:'', totalCuotas:'', cuotaActual:'0', color:'#1d4ed8', automatico:false });
   const [presEditId2, setPresEditId2] = useState(null);
@@ -168,7 +168,7 @@ export default function App({ user, data, onLogout }) {
       // Primero por fecha descendente
       const fechaDiff = new Date(b.fecha) - new Date(a.fecha);
       if (fechaDiff !== 0) return fechaDiff;
-      // Mismo dÃ­a â†’ orden de ingreso (createdAt o id numÃ©rico)
+      // Mismo día â†’ orden de ingreso (createdAt o id numérico)
       const aTime = a.createdAt || (typeof a.id === 'number' ? a.id : 0);
       const bTime = b.createdAt || (typeof b.id === 'number' ? b.id : 0);
       return bTime - aTime;
@@ -177,11 +177,11 @@ export default function App({ user, data, onLogout }) {
   ,[txs,showAll]);
   const topDay   = useMemo(()=>{ const d={}; txs.filter(t=>t.tipo==='gasto').forEach(t=>{d[t.fecha]=(d[t.fecha]||0)+t.monto;}); return Object.entries(d).sort((a,b)=>b[1]-a[1])[0]; },[txs]);
 
-  // PrÃ³ximos vencimientos (TC + PrÃ©stamos)
+  // Próximos vencimientos (TC + Préstamos)
   const proximosVenc = useMemo(()=>{
     const lista = [];
     const cicloProx = getCicloActual(); const [pd,pm,py] = cicloProx.limitePago.split('/'); tcs.forEach(tc => lista.push({ nombre:tc.nombre, monto:tc.deudaActual, fecha:`20${py}-${pm}-${pd}`, tipo:'TC', color:tc.color }));
-    prestamos.forEach(p => lista.push({ nombre:p.nombre+' '+p.numero, monto:p.cuotaMensual, fecha:p.proximoPago, tipo:'CrÃ©dito', color:p.color }));
+    prestamos.forEach(p => lista.push({ nombre:p.nombre+' '+p.numero, monto:p.cuotaMensual, fecha:p.proximoPago, tipo:'Crédito', color:p.color }));
     return lista.sort((a,b)=>new Date(a.fecha)-new Date(b.fecha));
   },[tcs,prestamos]);
 
@@ -206,7 +206,7 @@ export default function App({ user, data, onLogout }) {
       setAutoClasif(result);
       if (result) setTxForm(f=>({...f, descripcion:valor, categoria:result.categoria}));
     } else if (txForm.tipo === 'gasto' && !esDisposicion && !esPagoTC) {
-      // Pasar monto detectado O el que estÃ¡ en el campo para que la capa 6 funcione
+      // Pasar monto detectado O el que está en el campo para que la capa 6 funcione
       const montoParaClasif = montoDetectado || parseFloat(txForm.monto) || 0;
       const result = clasificarGasto(valor, montoParaClasif);
       setAutoClasif(result);
@@ -327,7 +327,7 @@ export default function App({ user, data, onLogout }) {
   const openAdd = () => {
     setTxEditId(null); setAutoClasif(null); setAlertaEmoc(null); setAlertaAceptada(false);
     setMedioPago(lastMedioPago); setShowDatePicker(false);
-    setTxForm({tipo:'gasto',categoria:'AlimentaciÃ³n',descripcion:'',monto:'',fecha:(()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;})()});
+    setTxForm({tipo:'gasto',categoria:'Alimentación',descripcion:'',monto:'',fecha:(()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;})()});
     setTab('agregar');
   };
   const handleTxEdit = (t) => {
@@ -337,7 +337,7 @@ export default function App({ user, data, onLogout }) {
     setTab('agregar');
   };
   const handleTxDel  = (id) => {
-    if(window.confirm('Â¿Eliminar?')) {
+    if(window.confirm('¿Eliminar?')) {
       setTxs(p=>p.filter(t=>String(t.id)!==String(id)));
       if(deleteTx) deleteTx(String(id)).catch(()=>{});
     }
@@ -355,10 +355,10 @@ export default function App({ user, data, onLogout }) {
       setPresupuestos(p=>[...p,{...obj,id:newId}]);
       if(addPres) addPres(obj).catch(()=>{});
     }
-    setPresForm({categoria:'AlimentaciÃ³n',limite:''}); setShowPresForm(false);
+    setPresForm({categoria:'Alimentación',limite:''}); setShowPresForm(false);
   };
   const handlePresDel = (id) => {
-    if(window.confirm('Â¿Eliminar?')) {
+    if(window.confirm('¿Eliminar?')) {
       setPresupuestos(p=>p.filter(x=>x.id!==id));
       if(deletePres) deletePres(id).catch(()=>{});
     }
@@ -378,7 +378,7 @@ export default function App({ user, data, onLogout }) {
     setMetaForm({nombre:'',objetivo:'',actual:'',color:'#6366f1'}); setShowMetaForm(false);
   };
   const handleMetaDel = (id) => {
-    if(window.confirm('Â¿Eliminar?')) {
+    if(window.confirm('¿Eliminar?')) {
       setMetas(p=>p.filter(m=>m.id!==id));
       if(deleteMeta) deleteMeta(id).catch(()=>{});
     }
@@ -419,7 +419,7 @@ export default function App({ user, data, onLogout }) {
   };
 
   const handleTcDel = (id) => {
-    if (window.confirm('Â¿Eliminar tarjeta?')) if(deleteTc) deleteTc(id).catch(()=>{});
+    if (window.confirm('¿Eliminar tarjeta?')) if(deleteTc) deleteTc(id).catch(()=>{});
   };
 
   const handlePres2Submit = () => {
@@ -435,7 +435,7 @@ export default function App({ user, data, onLogout }) {
     setShowPresForm2(false);
   };
   const handlePres2Edit = (p) => { setPresForm2({...p,montoOriginal:String(p.montoOriginal),capitalPendiente:String(p.capitalPendiente),cuotaMensual:String(p.cuotaMensual),tea:String(p.tea),tcea:String(p.tcea),totalCuotas:String(p.totalCuotas),cuotaActual:String(p.cuotaActual)}); setPresEditId2(p.id); setShowPresForm2(true); };
-  const handlePres2Del  = (id) => { if(window.confirm('Â¿Eliminar?')) if(deletePrestamo) deletePrestamo(id).catch(()=>{}); };
+  const handlePres2Del  = (id) => { if(window.confirm('¿Eliminar?')) if(deletePrestamo) deletePrestamo(id).catch(()=>{}); };
 
   return (
     <div style={S.app}>
@@ -450,7 +450,7 @@ export default function App({ user, data, onLogout }) {
             <div style={S.bubble(undefined,undefined,'-15px','-15px',110,110,0.04)}/>
             <div style={S.hContent}>
               <div style={S.topRow}>
-                <div><div style={S.greeting}>Buenos dÃ­as</div><div style={S.userName}>{user?.displayName?.split(' ')[0]||'JesÃºs'}</div></div>
+                <div><div style={S.greeting}>Buenos días</div><div style={S.userName}>{user?.displayName?.split(' ')[0]||'Jesús'}</div></div>
                 <div style={{display:'flex',alignItems:'center',gap:10}}>
                   {streak && streak.dias > 0 && (
                     <div style={{display:'flex',alignItems:'center',gap:4,background:'rgba(255,255,255,0.15)',borderRadius:20,padding:'4px 10px'}}>
@@ -465,7 +465,7 @@ export default function App({ user, data, onLogout }) {
                 </div>
               </div>
               <div style={S.balLabel}>Balance total</div>
-              <div style={S.balAmount}>{fmtInt(stats.balance)}</div>
+              <div style={S.balAmount}>{fmt(stats.balance)}</div>
               {saldoCuenta !== null && (
                 <div style={{display:'flex',alignItems:'center',gap:6,marginTop:8,background:'rgba(255,255,255,0.12)',borderRadius:12,padding:'6px 12px',width:'fit-content'}}>
                   <Wallet size={13} color="rgba(255,255,255,0.7)"/>
@@ -488,12 +488,12 @@ export default function App({ user, data, onLogout }) {
           {alertas.length>0 && (
             <div style={{padding:'12px 16px 0'}}>
               {alertas.map(a=>{ const pct=Math.round((gastoPorCat[a.categoria]||0)/a.limite*100); const sobre=pct>=100;
-                return <div key={a.id} style={{background:sobre?'#fef2f2':'#fffbeb',border:`1px solid ${sobre?'#fecaca':'#fde68a'}`,borderRadius:14,padding:'10px 14px',marginBottom:8,display:'flex',alignItems:'center',gap:10}}><AlertTriangle size={16} color={sobre?'#ef4444':'#f59e0b'}/><div style={{flex:1}}><span style={{fontSize:12,fontWeight:700,color:sobre?'#dc2626':'#92400e'}}>{sobre?`LÃ­mite superado: ${a.categoria}`:`Casi en lÃ­mite: ${a.categoria}`}</span><span style={{fontSize:11,color:'#9ca3af',marginLeft:6}}>{pct}%</span></div></div>;
+                return <div key={a.id} style={{background:sobre?'#fef2f2':'#fffbeb',border:`1px solid ${sobre?'#fecaca':'#fde68a'}`,borderRadius:14,padding:'10px 14px',marginBottom:8,display:'flex',alignItems:'center',gap:10}}><AlertTriangle size={16} color={sobre?'#ef4444':'#f59e0b'}/><div style={{flex:1}}><span style={{fontSize:12,fontWeight:700,color:sobre?'#dc2626':'#92400e'}}>{sobre?`Límite superado: ${a.categoria}`:`Casi en límite: ${a.categoria}`}</span><span style={{fontSize:11,color:'#9ca3af',marginLeft:6}}>{pct}%</span></div></div>;
               })}
             </div>
           )}
 
-          {/* Alertas TC facturaciÃ³n y pago */}
+          {/* Alertas TC facturación y pago */}
           {alertaTC().map((a,i)=>(
             <div key={i} style={{margin:'8px 16px 0',background:a.bg,border:`1px solid ${a.border}`,borderRadius:14,padding:'10px 14px',display:'flex',alignItems:'center',gap:10}}>
               <Calendar size={16} color={a.color}/>
@@ -501,20 +501,20 @@ export default function App({ user, data, onLogout }) {
             </div>
           ))}
 
-          {/* Alerta vencimientos prÃ³ximos */}
+          {/* Alerta vencimientos próximos */}
           {proximosVenc.filter(v=>diasHasta(v.fecha)<=10).map((v,i)=>(
             <div key={i} style={{margin:'8px 16px 0',background:'#fef2f2',border:'1px solid #fecaca',borderRadius:14,padding:'10px 14px',display:'flex',alignItems:'center',gap:10}}>
               <Clock size={16} color="#ef4444"/>
               <div style={{flex:1}}>
-                <span style={{fontSize:12,fontWeight:700,color:'#dc2626'}}>Pago en {diasHasta(v.fecha)} dÃ­as â€” {v.nombre}</span>
-                <div style={{fontSize:12,color:'#9ca3af'}}>{fmt(v.monto)} Â· {fmtFecha(v.fecha)}</div>
+                <span style={{fontSize:12,fontWeight:700,color:'#dc2626'}}>Pago en {diasHasta(v.fecha)} días — {v.nombre}</span>
+                <div style={{fontSize:12,color:'#9ca3af'}}>{fmt(v.monto)} · {fmtFecha(v.fecha)}</div>
               </div>
             </div>
           ))}
 
           <div style={(alertas.length>0 || alertaTC().length>0) ? S.statsRowWithAlerts : S.statsRow}>
             {[{label:'Ingresos',val:stats.ingresos,color:'#10b981',Icon:ArrowUpCircle},{label:'Gastos',val:stats.gastos,color:'#ef4444',Icon:ArrowDownCircle},{label:'Ahorro',val:stats.balance,color:'#7c3aed',Icon:Wallet}].map(s=>(
-              <div key={s.label} style={S.statCard}><div style={S.statIconWrap(s.color)}><s.Icon size={16} color={s.color}/></div><div style={S.statLabel}>{s.label}</div><div style={S.statVal(s.color)}>{fmtShort(s.val)}</div></div>
+              <div key={s.label} style={S.statCard}><div style={S.statIconWrap(s.color)}><s.Icon size={16} color={s.color}/></div><div style={S.statLabel}>{s.label}</div><div style={S.statVal(s.color)}>{fmt(s.val)}</div></div>
             ))}
           </div>
 
@@ -522,10 +522,10 @@ export default function App({ user, data, onLogout }) {
             <div style={S.card}>
               <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
                 <div style={S.secTitle}>Movimientos</div>
-                <div style={S.chartToggle}>{['dÃ­a','mes'].map(p=><button key={p} style={S.chartBtn(chartPeriod===p)} onClick={()=>setChartPeriod(p)}>{p}</button>)}</div>
+                <div style={S.chartToggle}>{['día','mes'].map(p=><button key={p} style={S.chartBtn(chartPeriod===p)} onClick={()=>setChartPeriod(p)}>{p}</button>)}</div>
               </div>
               <ResponsiveContainer width="100%" height={140}>
-                {chartPeriod==='dÃ­a' ? (
+                {chartPeriod==='día' ? (
                   <AreaChart data={areaData} margin={{top:5,right:5,left:-25,bottom:0}}>
                     <defs><linearGradient id="grad" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#7c3aed" stopOpacity={0.3}/><stop offset="95%" stopColor="#7c3aed" stopOpacity={0}/></linearGradient></defs>
                     <XAxis dataKey="dia" tick={{fontSize:9,fill:'#9ca3af'}} interval={6}/><YAxis tick={{fontSize:9,fill:'#9ca3af'}}/>
@@ -557,8 +557,8 @@ export default function App({ user, data, onLogout }) {
               {recentTxs.map((t,i)=>{ const info=CAT_ICONOS[t.categoria]||{icon:Package,color:'#6b7280'}; const Icon=info.icon; return (
                 <div key={t.id} style={S.txItem(i===recentTxs.length-1)}>
                   <div style={S.txIconWrap(info.color)}><Icon size={17} color={info.color}/></div>
-                  <div style={{flex:1,minWidth:0}}><div style={S.txName}>{t.descripcion}</div><div style={S.txMeta}>{t.categoria} Â· {fmtFecha(t.fecha)}{t.medioPago==='tc'?<> Â· <CreditCard size={9} color="#b45309" style={{display:'inline',verticalAlign:'middle',marginLeft:2}}/></>:''}</div></div>
-                  <div style={S.txAmt(t.tipo)}>{t.tipo==='ingreso'?'+':'-'}{fmtInt(t.monto)}</div>
+                  <div style={{flex:1,minWidth:0}}><div style={S.txName}>{t.descripcion}</div><div style={S.txMeta}>{t.categoria} · {fmtFecha(t.fecha)}{t.medioPago==='tc'?<> · <CreditCard size={9} color="#b45309" style={{display:'inline',verticalAlign:'middle',marginLeft:2}}/></>:''}</div></div>
+                  <div style={S.txAmt(t.tipo)}>{t.tipo==='ingreso'?'+':'-'}{fmt(t.monto)}</div>
                   <button onClick={()=>handleTxEdit(t)} style={S.actionBtn('#f5f3ff')}><Pencil size={13} color="#7c3aed"/></button>
                   <button onClick={()=>handleTxDel(t.id)} style={S.actionBtn('#fef2f2')}><Trash2 size={13} color="#ef4444"/></button>
                 </div>
@@ -570,15 +570,15 @@ export default function App({ user, data, onLogout }) {
         {/* â•â• AGREGAR TX â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
         {tab==='agregar' && (
           <div>
-            <div style={S.pageHeader()}><div style={S.bubble(-40,'-40px',undefined,undefined,140,140,0.07)}/><div style={S.pageTitle}>{txEditId?'Editar':'Nueva transacciÃ³n'}</div><div style={S.pageSub}>Registra tus movimientos</div></div>
+            <div style={S.pageHeader()}><div style={S.bubble(-40,'-40px',undefined,undefined,140,140,0.07)}/><div style={S.pageTitle}>{txEditId?'Editar':'Nueva transacción'}</div><div style={S.pageSub}>Registra tus movimientos</div></div>
             <div style={S.formWrap}><div style={S.formCard}>
 
               {/* Tipo toggle */}
-              <div style={S.typeToggle}>{['gasto','ingreso'].map(tipo=><button key={tipo} style={S.typeBtn(txForm.tipo===tipo,tipo)} onClick={()=>{setTxForm(f=>({...f,tipo,categoria:tipo==='gasto'?'AlimentaciÃ³n':'Salario'}));setAutoClasif(null);setAlertaEmoc(null);setMedioPago('efectivo');}}>{tipo==='ingreso'?<><ArrowUpCircle size={16}/>Ingreso</>:<><ArrowDownCircle size={16}/>Gasto</>}</button>)}</div>
+              <div style={S.typeToggle}>{['gasto','ingreso'].map(tipo=><button key={tipo} style={S.typeBtn(txForm.tipo===tipo,tipo)} onClick={()=>{setTxForm(f=>({...f,tipo,categoria:tipo==='gasto'?'Alimentación':'Salario'}));setAutoClasif(null);setAlertaEmoc(null);setMedioPago('efectivo');}}>{tipo==='ingreso'?<><ArrowUpCircle size={16}/>Ingreso</>:<><ArrowDownCircle size={16}/>Gasto</>}</button>)}</div>
 
-              {/* DescripciÃ³n + monto en una lÃ­nea */}
-              <label style={S.label}>Â¿QuÃ© compraste? (puedes incluir el monto)</label>
-              <input style={S.input} type="text" placeholder="ej: ceviche 29 Â· uber 12 Â· salario 2500"
+              {/* Descripción + monto en una línea */}
+              <label style={S.label}>¿Qué compraste? (puedes incluir el monto)</label>
+              <input style={S.input} type="text" placeholder="ej: ceviche 29 · uber 12 · salario 2500"
                 value={txForm.descripcion}
                 onChange={e=>handleDescChange(e.target.value)}
                 onFocus={if_} onBlur={ib_}/>
@@ -591,10 +591,10 @@ export default function App({ user, data, onLogout }) {
                 </div>
               )}
 
-              {/* SUGERENCIAS DE CATEGORÃA EN TIEMPO REAL */}
+              {/* SUGERENCIAS DE CATEGORÍA EN TIEMPO REAL */}
               {txForm.tipo==='gasto' && txForm.descripcion.length >= 2 && (()=>{
                 const elegida = autoClasif?.elegida ? autoClasif.categoria : null;
-                // Mostrar top 3 sugerencias o todas si no hay detecciÃ³n
+                // Mostrar top 3 sugerencias o todas si no hay detección
                 const sugerencias = autoClasif
                   ? [autoClasif.categoria, ...CATS_GASTO.filter(c=>c!==autoClasif.categoria).slice(0,2)]
                   : CATS_GASTO.slice(0,4);
@@ -603,12 +603,12 @@ export default function App({ user, data, onLogout }) {
                     {autoClasif && (
                       <div style={{fontSize:11,color:'#9ca3af',marginBottom:8,display:'flex',alignItems:'center',gap:5}}>
                         <CheckCircle size={11} color="#10b981"/>
-                        DetectÃ© <strong style={{color:'#1f1b4b'}}>{autoClasif.categoria}</strong>{autoClasif.forzado?' Â· categorÃ­a explÃ­cita':autoClasif.ajustado?' Â· ajustado por horario':''} â€” toca para confirmar u elige otra
+                        Detecté <strong style={{color:'#1f1b4b'}}>{autoClasif.categoria}</strong>{autoClasif.forzado?' · categoría explícita':autoClasif.ajustado?' · ajustado por horario':''} — toca para confirmar u elige otra
                       </div>
                     )}
                     {!autoClasif && (
                       <div style={{fontSize:11,color:'#9ca3af',marginBottom:8}}>
-                        No reconocÃ­ la categorÃ­a â€” elige una:
+                        No reconocí la categoría — elige una:
                       </div>
                     )}
                     <div style={{display:'flex',flexWrap:'wrap',gap:8}}>
@@ -638,15 +638,15 @@ export default function App({ user, data, onLogout }) {
                 );
               })()}
 
-              {/* Monto â€” se llena solo si escribiste el nÃºmero en la descripciÃ³n */}
+              {/* Monto — se llena solo si escribiste el número en la descripción */}
               <label style={S.label}>
-                Monto (S/.) {extraerMonto(txForm.descripcion).monto ? <span style={{color:'#10b981',fontSize:10,fontWeight:600}}>âœ“ detectado</span> : <span style={{color:'#9ca3af',fontSize:10}}>o escrÃ­belo aquÃ­</span>}
+                Monto (S/.) {extraerMonto(txForm.descripcion).monto ? <span style={{color:'#10b981',fontSize:10,fontWeight:600}}>âœ“ detectado</span> : <span style={{color:'#9ca3af',fontSize:10}}>o escríbelo aquí</span>}
               </label>
               <input style={S.input} type="number" placeholder="0.00" value={txForm.monto}
                 onChange={e=>setTxForm(p=>({...p,monto:e.target.value}))} onFocus={if_} onBlur={ib_}/>
 
-              {/* Fecha â€” hoy por defecto, botÃ³n ayer, picker opcional */}
-              <label style={S.label}>Â¿CuÃ¡ndo fue?</label>
+              {/* Fecha — hoy por defecto, botón ayer, picker opcional */}
+              <label style={S.label}>¿Cuándo fue?</label>
               <div style={{display:'flex',gap:8,marginBottom:showDatePicker?8:12}}>
                 {(()=>{ const hoyDate=new Date(); const ayerDate=new Date(); ayerDate.setDate(ayerDate.getDate()-1); const fmtLocal=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; return [{label:'Hoy',val:fmtLocal(hoyDate)},{label:'Ayer',val:fmtLocal(ayerDate)}]; })().map(op=>(
                   <button key={op.label} onClick={()=>{setTxForm(p=>({...p,fecha:op.val}));setShowDatePicker(false);}}
@@ -670,10 +670,10 @@ export default function App({ user, data, onLogout }) {
                   onChange={e=>setTxForm(p=>({...p,fecha:e.target.value}))} onFocus={if_} onBlur={ib_}/>
               )}
 
-              {/* Medio de pago â€” solo para gastos */}
+              {/* Medio de pago — solo para gastos */}
               {txForm.tipo==='gasto' && !tipoEspecial && (
                 <div style={{marginBottom:14}}>
-                  <label style={S.label}>Â¿CÃ³mo pagaste?</label>
+                  <label style={S.label}>¿Cómo pagaste?</label>
                   <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
                     {[{id:'efectivo',label:'Efectivo / Cuenta',sub:'Resta tu balance'}, ...(tcs.length > 0 ? tcs.map(tc=>({id:`tc_${tc.id}`,label:`${tc.banco} ${tc.numero}`,sub:'Sube deuda TC'})) : [{id:'tc',label:'VISA ****2769',sub:'Agrega tu TC en Deudas'}])].map(mp=>(
                       <button key={mp.id} onClick={()=>setMedioPago(mp.id)}
@@ -690,23 +690,23 @@ export default function App({ user, data, onLogout }) {
                   </div>
                   {medioPago==='tc' && (
                     <div style={{marginTop:8,background:'#fef9ec',border:'1px solid #fde68a',borderRadius:10,padding:'8px 12px',fontSize:11,color:'#92400e'}}>
-                      Este gasto no restarÃ¡ tu balance â€” se suma a tu deuda TC y pagas el {getCicloActual().limitePago}
+                      Este gasto no restará tu balance — se suma a tu deuda TC y pagas el {getCicloActual().limitePago}
                     </div>
                   )}
                 </div>
               )}
 
-              {/* CategorÃ­a final â€” solo visible si no hay sugerencias activas */}
+              {/* Categoría final — solo visible si no hay sugerencias activas */}
               {(txForm.tipo==='ingreso' || txForm.descripcion.length < 2) && (
                 <div>
-                  <label style={S.label}>CategorÃ­a</label>
+                  <label style={S.label}>Categoría</label>
                   <select style={S.select} value={txForm.categoria}
                     onChange={e=>setTxForm(p=>({...p,categoria:e.target.value}))}>
                     {(txForm.tipo==='gasto'?CATS_GASTO:CATS_INGRESO).map(c=><option key={c}>{c}</option>)}
                   </select>
                 </div>
               )}
-              {/* Indicador de categorÃ­a elegida */}
+              {/* Indicador de categoría elegida */}
               {txForm.tipo==='gasto' && txForm.descripcion.length >= 2 && (autoClasif?.elegida) && (()=>{
                 const cat = txForm.categoria;
                 const info = CAT_ICONOS[cat]||{icon:Package,color:'#6b7280'};
@@ -714,7 +714,7 @@ export default function App({ user, data, onLogout }) {
                 return (
                   <div style={{display:'flex',alignItems:'center',gap:8,background:info.color+'12',border:`1.5px solid ${info.color}30`,borderRadius:12,padding:'10px 14px',marginBottom:12}}>
                     <Icon size={16} color={info.color}/>
-                    <span style={{fontSize:13,fontWeight:700,color:info.color}}>CategorÃ­a: {cat}</span>
+                    <span style={{fontSize:13,fontWeight:700,color:info.color}}>Categoría: {cat}</span>
                     <button onClick={()=>setAutoClasif(prev=>({...prev,elegida:false}))} style={{marginLeft:'auto',background:'none',border:'none',cursor:'pointer',fontSize:11,color:'#9ca3af'}}>cambiar</button>
                   </div>
                 );
@@ -729,7 +729,7 @@ export default function App({ user, data, onLogout }) {
                   </div>
                   {alertaAceptada && (
                     <div style={{fontSize:12,color:alertaEmoc.color,fontStyle:'italic',marginBottom:8,paddingLeft:28}}>
-                      Entendido. Si aun asÃ­ quieres registrarlo, toca "Registrar" de nuevo.
+                      Entendido. Si aun así quieres registrarlo, toca "Registrar" de nuevo.
                     </div>
                   )}
                 </div>
@@ -743,9 +743,9 @@ export default function App({ user, data, onLogout }) {
                     <span style={{fontSize:13,fontWeight:700,color:'#16a34a'}}>Salario detectado</span>
                   </div>
                   <div style={{fontSize:12,color:'#166534',lineHeight:1.5}}>
-                    Al registrar, se descontarÃ¡n automÃ¡ticamente:<br/>
-                    <strong>CrÃ©dito ****6347</strong> â€” S/ 272.28<br/>
-                    <strong>CrÃ©dito ****6069</strong> â€” S/ 103.90
+                    Al registrar, se descontarán automáticamente:<br/>
+                    <strong>Crédito ****6347</strong> — S/ 272.28<br/>
+                    <strong>Crédito ****6069</strong> — S/ 103.90
                   </div>
                 </div>
               )}
@@ -753,11 +753,11 @@ export default function App({ user, data, onLogout }) {
                 <div style={{background:'#fef2f2',border:'1.5px solid #fecaca',borderRadius:14,padding:'12px 14px',marginBottom:12}}>
                   <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
                     <AlertTriangle size={15} color="#dc2626"/>
-                    <span style={{fontSize:13,fontWeight:700,color:'#dc2626'}}>DisposiciÃ³n de efectivo</span>
+                    <span style={{fontSize:13,fontWeight:700,color:'#dc2626'}}>Disposición de efectivo</span>
                   </div>
                   <div style={{fontSize:12,color:'#991b1b',lineHeight:1.5}}>
-                    Se registrarÃ¡ como ingreso y subirÃ¡ tu deuda en la VISA BCP.<br/>
-                    <strong>TEA: 87.50%</strong> â€” intereses desde el primer dÃ­a.
+                    Se registrará como ingreso y subirá tu deuda en la VISA BCP.<br/>
+                    <strong>TEA: 87.50%</strong> — intereses desde el primer día.
                   </div>
                 </div>
               )}
@@ -768,7 +768,7 @@ export default function App({ user, data, onLogout }) {
                     <span style={{fontSize:13,fontWeight:700,color:'#1d4ed8'}}>Pago de tarjeta detectado</span>
                   </div>
                   <div style={{fontSize:12,color:'#1e40af',lineHeight:1.5}}>
-                    El monto se descontarÃ¡ del consumido de tu VISA BCP ****2769.
+                    El monto se descontará del consumido de tu VISA BCP ****2769.
                   </div>
                 </div>
               )}
@@ -776,42 +776,42 @@ export default function App({ user, data, onLogout }) {
               <button style={{...S.submitBtn, background: alertaEmoc && !alertaAceptada ? `linear-gradient(135deg,${alertaEmoc.color},${alertaEmoc.color}cc)` : tipoEspecial==='disposicion' ? 'linear-gradient(135deg,#dc2626,#b91c1c)' : tipoEspecial==='salario' ? 'linear-gradient(135deg,#16a34a,#15803d)' : tipoEspecial==='pagoTC' ? 'linear-gradient(135deg,#1d4ed8,#1e40af)' : 'linear-gradient(135deg,#7c3aed,#4f46e5)'}}
                 onClick={handleTxSubmit}>
                 <Plus size={18}/>
-                {alertaEmoc && !alertaAceptada ? 'Soy consciente â€” continuar' : tipoEspecial==='salario' ? 'Registrar salario + descontar cuotas' : tipoEspecial==='disposicion' ? 'Confirmar disposiciÃ³n' : tipoEspecial==='pagoTC' ? 'Registrar pago TC' : txEditId?'Guardar cambios':'Registrar'}
+                {alertaEmoc && !alertaAceptada ? 'Soy consciente — continuar' : tipoEspecial==='salario' ? 'Registrar salario + descontar cuotas' : tipoEspecial==='disposicion' ? 'Confirmar disposición' : tipoEspecial==='pagoTC' ? 'Registrar pago TC' : txEditId?'Guardar cambios':'Registrar'}
               </button>
 
             </div></div>
           </div>
         )}
 
-        {/* â•â• DEUDAS (TC + PRÃ‰STAMOS) â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+        {/* â•â• DEUDAS (TC + PRÉSTAMOS) â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
         {tab==='deudas' && (
           <div>
             <div style={S.pageHeader('linear-gradient(135deg,#1e1b4b,#4338ca)')}>
               <div style={S.bubble(-40,'-40px',undefined,undefined,140,140,0.07)}/>
-              <div style={S.pageTitle}>Deudas y CrÃ©ditos</div>
-              <div style={S.pageSub}>BCP â€” JesÃºs Cortez</div>
+              <div style={S.pageTitle}>Deudas y Créditos</div>
+              <div style={S.pageSub}>BCP — Jesús Cortez</div>
             </div>
             <div style={{padding:'16px'}}>
               <ResumenDeudas tcs={tcs} prestamos={prestamos}/>
 
-              {/* PrÃ³ximos vencimientos */}
+              {/* Próximos vencimientos */}
               <div style={{...S.card, marginBottom:14}}>
-                <div style={{...S.secTitle, marginBottom:12, display:'flex', alignItems:'center', gap:8}}><Clock size={16} color="#7c3aed"/>PrÃ³ximos vencimientos</div>
+                <div style={{...S.secTitle, marginBottom:12, display:'flex', alignItems:'center', gap:8}}><Clock size={16} color="#7c3aed"/>Próximos vencimientos</div>
                 {proximosVenc.map((v,i)=>{
                   const dias = diasHasta(v.fecha); const urg = urgenciaColor(dias);
                   return (
                     <div key={i} style={{display:'flex',alignItems:'center',gap:10,padding:'9px 0',borderBottom:i<proximosVenc.length-1?'1px solid #f5f3ff':'none'}}>
                       <div style={{width:8,height:8,borderRadius:'50%',background:urg.badge,flexShrink:0}}/>
-                      <div style={{flex:1}}><div style={{fontSize:12,fontWeight:700,color:'#1f1b4b'}}>{v.nombre}</div><div style={{fontSize:11,color:'#9ca3af'}}>{v.tipo} Â· {fmtFecha(v.fecha)}</div></div>
+                      <div style={{flex:1}}><div style={{fontSize:12,fontWeight:700,color:'#1f1b4b'}}>{v.nombre}</div><div style={{fontSize:11,color:'#9ca3af'}}>{v.tipo} · {fmtFecha(v.fecha)}</div></div>
                       <div style={{textAlign:'right'}}><div style={{fontSize:13,fontWeight:800,color:urg.text}}>{fmt(v.monto)}</div><div style={{fontSize:10,color:urg.text,fontWeight:600}}>{dias>0?`${dias}d`:' Vence hoy'}</div></div>
                     </div>
                   );
                 })}
               </div>
 
-              {/* Sub tabs TC / PrÃ©stamos */}
+              {/* Sub tabs TC / Préstamos */}
               <div style={{display:'flex',gap:8,marginBottom:14}}>
-                {[{id:'tc',label:'Tarjetas',Icon:CreditCard},{id:'prestamos',label:'CrÃ©ditos',Icon:Landmark}].map(({id,label,Icon})=>(
+                {[{id:'tc',label:'Tarjetas',Icon:CreditCard},{id:'prestamos',label:'Créditos',Icon:Landmark}].map(({id,label,Icon})=>(
                   <button key={id} onClick={()=>setSubTabDeudas(id)} style={{flex:1,padding:'10px',borderRadius:14,border:'none',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:6,fontFamily:'inherit',fontWeight:700,fontSize:13,transition:'all 0.2s',background:subTabDeudas===id?'linear-gradient(135deg,#4338ca,#6366f1)':'#fff',color:subTabDeudas===id?'#fff':'#9ca3af',boxShadow:subTabDeudas===id?'0 4px 16px rgba(67,56,202,0.3)':'none'}}>
                     <Icon size={16}/>{label}
                   </button>
@@ -839,7 +839,7 @@ export default function App({ user, data, onLogout }) {
 
                   <button onClick={()=>{setTcEditId(null);setTcForm({nombre:'',banco:'',numero:'',lineaTotal:'',consumido:'',deudaActual:'',tea:'',diaCorte:'',diaPago:'',color:'#b45309'});setShowTcForm(true);}}
                     style={{width:'100%',padding:'12px',borderRadius:14,border:'2px dashed #c7d2fe',background:'#f0f0f7',color:'#6366f1',fontFamily:'inherit',fontWeight:700,fontSize:12,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:6,marginBottom:12}}>
-                    <Plus size={16}/>Agregar tarjeta de crÃ©dito
+                    <Plus size={16}/>Agregar tarjeta de crédito
                   </button>
 
                   {showTcForm && (
@@ -851,13 +851,13 @@ export default function App({ user, data, onLogout }) {
                       {[
                         {l:'Banco',k:'banco',t:'text',ph:'ej. BCP, Interbank, BBVA'},
                         {l:'Nombre de la tarjeta',k:'nombre',t:'text',ph:'ej. VISA BCP LATAM Pass'},
-                        {l:'Ãšltimos 4 dÃ­gitos',k:'numero',t:'text',ph:'****1234'},
-                        {l:'LÃ­nea de crÃ©dito total (S/.)',k:'lineaTotal',t:'number',ph:'0.00'},
+                        {l:'Últimos 4 dígitos',k:'numero',t:'text',ph:'****1234'},
+                        {l:'Línea de crédito total (S/.)',k:'lineaTotal',t:'number',ph:'0.00'},
                         {l:'Consumido actual (S/.)',k:'consumido',t:'number',ph:'0.00'},
                         {l:'Deuda actual (S/.)',k:'deudaActual',t:'number',ph:'0.00'},
                         {l:'TEA % (tasa anual)',k:'tea',t:'number',ph:'34.33'},
-                        {l:'DÃ­a de corte',k:'diaCorte',t:'number',ph:'25'},
-                        {l:'DÃ­a lÃ­mite de pago',k:'diaPago',t:'number',ph:'22'},
+                        {l:'Día de corte',k:'diaCorte',t:'number',ph:'25'},
+                        {l:'Día límite de pago',k:'diaPago',t:'number',ph:'22'},
                       ].map(f=>(
                         <div key={f.k}>
                           <label style={S.label}>{f.l}</label>
@@ -875,30 +875,30 @@ export default function App({ user, data, onLogout }) {
                 </div>
               )}
 
-              {/* PrÃ©stamos */}
+              {/* Préstamos */}
               {subTabDeudas==='prestamos' && (
                 <div>
                   {prestamos.map(p=><PrestamoCard key={p.id} prestamo={p} onEdit={()=>handlePres2Edit(p)} onDelete={()=>handlePres2Del(p.id)}/>)}
 
                   <button onClick={()=>{setPresEditId2(null);setPresForm2({nombre:'',banco:'',numero:'',montoOriginal:'',capitalPendiente:'',cuotaMensual:'',proximoPago:'',tea:'',tcea:'',totalCuotas:'',cuotaActual:'0',color:'#1d4ed8',automatico:false});setShowPresForm2(true);}}
                     style={{width:'100%',padding:'12px',borderRadius:14,border:'2px dashed #c7d2fe',background:'#f0f0f7',color:'#6366f1',fontFamily:'inherit',fontWeight:700,fontSize:12,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:6}}>
-                    <Plus size={16}/>Agregar crÃ©dito
+                    <Plus size={16}/>Agregar crédito
                   </button>
 
                   {showPresForm2 && (
                     <div style={{...S.formCard,marginTop:12,border:'1px solid #e0e7ff'}}>
                       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
-                        <span style={{fontSize:14,fontWeight:700,color:'#1f1b4b'}}>{presEditId2?'Editar crÃ©dito':'Nuevo crÃ©dito'}</span>
+                        <span style={{fontSize:14,fontWeight:700,color:'#1f1b4b'}}>{presEditId2?'Editar crédito':'Nuevo crédito'}</span>
                         <button onClick={()=>{setShowPresForm2(false);setPresEditId2(null);}} style={{background:'none',border:'none',cursor:'pointer'}}><X size={18} color="#9ca3af"/></button>
                       </div>
-                      {[{l:'Nombre',k:'nombre',t:'text',ph:'ej. CrÃ©dito Efectivo'},{l:'Banco',k:'banco',t:'text',ph:'ej. BCP'},{l:'NÂ° (Ãºltimos 4)',k:'numero',t:'text',ph:'****1234'},{l:'Monto original (S/.)',k:'montoOriginal',t:'number',ph:'0.00'},{l:'Capital pendiente (S/.)',k:'capitalPendiente',t:'number',ph:'0.00'},{l:'Cuota mensual (S/.)',k:'cuotaMensual',t:'number',ph:'0.00'},{l:'Total cuotas',k:'totalCuotas',t:'number',ph:'36'},{l:'Cuota actual NÂ°',k:'cuotaActual',t:'number',ph:'0'},{l:'PrÃ³ximo pago',k:'proximoPago',t:'date',ph:''},{l:'TEA %',k:'tea',t:'number',ph:'8.70'},{l:'TCEA %',k:'tcea',t:'number',ph:'10.21'}].map(f=>(
+                      {[{l:'Nombre',k:'nombre',t:'text',ph:'ej. Crédito Efectivo'},{l:'Banco',k:'banco',t:'text',ph:'ej. BCP'},{l:'N° (últimos 4)',k:'numero',t:'text',ph:'****1234'},{l:'Monto original (S/.)',k:'montoOriginal',t:'number',ph:'0.00'},{l:'Capital pendiente (S/.)',k:'capitalPendiente',t:'number',ph:'0.00'},{l:'Cuota mensual (S/.)',k:'cuotaMensual',t:'number',ph:'0.00'},{l:'Total cuotas',k:'totalCuotas',t:'number',ph:'36'},{l:'Cuota actual N°',k:'cuotaActual',t:'number',ph:'0'},{l:'Próximo pago',k:'proximoPago',t:'date',ph:''},{l:'TEA %',k:'tea',t:'number',ph:'8.70'},{l:'TCEA %',k:'tcea',t:'number',ph:'10.21'}].map(f=>(
                         <div key={f.k}><label style={S.label}>{f.l}</label><input style={S.input} type={f.t} placeholder={f.ph} value={presForm2[f.k]} onChange={e=>setPresForm2(p=>({...p,[f.k]:e.target.value}))} onFocus={if_} onBlur={ib_}/></div>
                       ))}
                       <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:16}}>
                         <input type="checkbox" id="auto" checked={presForm2.automatico} onChange={e=>setPresForm2(p=>({...p,automatico:e.target.checked}))} style={{width:18,height:18}}/>
-                        <label htmlFor="auto" style={{fontSize:13,color:'#1f1b4b',fontWeight:600}}>DÃ©bito automÃ¡tico</label>
+                        <label htmlFor="auto" style={{fontSize:13,color:'#1f1b4b',fontWeight:600}}>Débito automático</label>
                       </div>
-                      <button style={{...S.submitBtn,background:'linear-gradient(135deg,#4338ca,#6366f1)'}} onClick={handlePres2Submit}><Plus size={16}/>{presEditId2?'Guardar':'Agregar crÃ©dito'}</button>
+                      <button style={{...S.submitBtn,background:'linear-gradient(135deg,#4338ca,#6366f1)'}} onClick={handlePres2Submit}><Plus size={16}/>{presEditId2?'Guardar':'Agregar crédito'}</button>
                     </div>
                   )}
                 </div>
@@ -912,7 +912,7 @@ export default function App({ user, data, onLogout }) {
           <div>
             <div style={S.pageHeader('linear-gradient(135deg,#0f766e,#0d9488)')}>
               <div style={S.bubble(-40,'-40px',undefined,undefined,140,140,0.07)}/>
-              <div style={S.pageTitle}>Presupuestos y Metas</div><div style={S.pageSub}>Controla tus lÃ­mites y objetivos</div>
+              <div style={S.pageTitle}>Presupuestos y Metas</div><div style={S.pageSub}>Controla tus límites y objetivos</div>
             </div>
             <div style={{padding:'16px'}}>
               {(() => { const total=presupuestos.reduce((s,p)=>s+p.limite,0); const gastado=presupuestos.reduce((s,p)=>s+(gastoPorCat[p.categoria]||0),0); const pct=total>0?Math.min(100,Math.round(gastado/total*100)):0; return (
@@ -926,7 +926,7 @@ export default function App({ user, data, onLogout }) {
                 </div>
               ); })()}
 
-              {/* â”€â”€ FASE C: Sugerencias automÃ¡ticas â”€â”€ */}
+              {/* â”€â”€ FASE C: Sugerencias automáticas â”€â”€ */}
               {(()=>{
                 const sugs = generarSugerencias(txs, presupuestos);
                 if (sugs.length===0 || sugerenciasDescartadas) return null;
@@ -936,7 +936,7 @@ export default function App({ user, data, onLogout }) {
                       <TrendingUp size={15} color="rgba(255,255,255,0.8)"/>
                       <span style={{color:'#fff',fontSize:13,fontWeight:800}}>Presupuestos sugeridos</span>
                     </div>
-                    <div style={{color:'rgba(255,255,255,0.7)',fontSize:11,marginBottom:12,lineHeight:1.5}}>Basado en tus Ãºltimos gastos, te sugiero estos lÃ­mites:</div>
+                    <div style={{color:'rgba(255,255,255,0.7)',fontSize:11,marginBottom:12,lineHeight:1.5}}>Basado en tus últimos gastos, te sugiero estos límites:</div>
                     {sugs.map((s,i)=>{
                       const info=CAT_ICONOS[s.categoria]||{icon:Package,color:'#6b7280'}; const Icon=info.icon;
                       return (
@@ -965,14 +965,14 @@ export default function App({ user, data, onLogout }) {
               })()}
 
               <div style={S.secHeader}>
-                <div style={S.secTitle}>Por categorÃ­a</div>
-                <button style={{...S.seeAll,background:'linear-gradient(135deg,#0d9488,#0f766e)',color:'#fff',padding:'6px 12px',borderRadius:20}} onClick={()=>{setPresForm({categoria:'AlimentaciÃ³n',limite:''});setPresEditId(null);setShowPresForm(true);}}><Plus size={12}/>Nuevo</button>
+                <div style={S.secTitle}>Por categoría</div>
+                <button style={{...S.seeAll,background:'linear-gradient(135deg,#0d9488,#0f766e)',color:'#fff',padding:'6px 12px',borderRadius:20}} onClick={()=>{setPresForm({categoria:'Alimentación',limite:''});setPresEditId(null);setShowPresForm(true);}}><Plus size={12}/>Nuevo</button>
               </div>
               {showPresForm && (
                 <div style={{...S.formCard,marginBottom:12,border:'1px solid #ccfbf1'}}>
                   <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}><span style={{fontSize:14,fontWeight:700,color:'#1f1b4b'}}>{presEditId?'Editar':'Nuevo presupuesto'}</span><button onClick={()=>{setShowPresForm(false);setPresEditId(null);}} style={{background:'none',border:'none',cursor:'pointer'}}><X size={18} color="#9ca3af"/></button></div>
-                  <label style={S.label}>CategorÃ­a</label><select style={S.select} value={presForm.categoria} onChange={e=>setPresForm(p=>({...p,categoria:e.target.value}))}>{CATS_GASTO.map(c=><option key={c}>{c}</option>)}</select>
-                  <label style={S.label}>LÃ­mite mensual (S/.)</label><input style={S.input} type="number" placeholder="0.00" value={presForm.limite} onChange={e=>setPresForm(p=>({...p,limite:e.target.value}))} onFocus={if_} onBlur={ib_}/>
+                  <label style={S.label}>Categoría</label><select style={S.select} value={presForm.categoria} onChange={e=>setPresForm(p=>({...p,categoria:e.target.value}))}>{CATS_GASTO.map(c=><option key={c}>{c}</option>)}</select>
+                  <label style={S.label}>Límite mensual (S/.)</label><input style={S.input} type="number" placeholder="0.00" value={presForm.limite} onChange={e=>setPresForm(p=>({...p,limite:e.target.value}))} onFocus={if_} onBlur={ib_}/>
                   <button style={{...S.submitBtn,background:'linear-gradient(135deg,#0d9488,#0f766e)'}} onClick={handlePresSubmit}><Plus size={16}/>{presEditId?'Guardar':'Agregar'}</button>
                 </div>
               )}
@@ -1006,13 +1006,13 @@ export default function App({ user, data, onLogout }) {
           </div>
         )}
 
-        {/* â•â• STATS FASE D â€” ANÃLISIS CON CONCLUSIONES â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+        {/* â•â• STATS FASE D — ANÁLISIS CON CONCLUSIONES â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
         {tab==='stats' && (
           <div>
             <div style={S.pageHeader('linear-gradient(135deg,#0f172a,#1e3a5f)')}>
               <div style={S.bubble(-40,'-40px',undefined,undefined,140,140,0.07)}/>
-              <div style={S.pageTitle}>AnÃ¡lisis Inteligente</div>
-              <div style={S.pageSub}>Lo que tus nÃºmeros te dicen</div>
+              <div style={S.pageTitle}>Análisis Inteligente</div>
+              <div style={S.pageSub}>Lo que tus números te dicen</div>
             </div>
             <div style={{padding:'16px'}}>
 
@@ -1024,7 +1024,7 @@ export default function App({ user, data, onLogout }) {
                       <div style={{color:'rgba(255,255,255,0.6)',fontSize:11,textTransform:'uppercase',letterSpacing:0.5,marginBottom:4}}>Saldo disponible en cuenta</div>
                       <div style={{color:'#fff',fontSize:32,fontWeight:800}}>{fmt(saldoCuenta)}</div>
                       <div style={{color:'rgba(255,255,255,0.6)',fontSize:11,marginTop:4}}>
-                        {saldoCuenta < 200 ? 'âš ï¸ Saldo bajo â€” considera reducir gastos' :
+                        {saldoCuenta < 200 ? 'âš ï¸ Saldo bajo — considera reducir gastos' :
                          saldoCuenta < 500 ? 'Saldo moderado' : 'âœ“ Saldo saludable'}
                       </div>
                     </div>
@@ -1076,7 +1076,7 @@ export default function App({ user, data, onLogout }) {
                 );
               })()}
 
-              {/* â”€â”€ DÃ­a con mÃ¡s gastos â”€â”€ */}
+              {/* â”€â”€ Día con más gastos â”€â”€ */}
               {topDay && (() => {
                 const diasData = {};
                 txs.filter(t=>t.tipo==='gasto').forEach(t=>{ diasData[t.fecha]=(diasData[t.fecha]||0)+t.monto; });
@@ -1085,7 +1085,7 @@ export default function App({ user, data, onLogout }) {
                   <div style={{background:'#fff',borderRadius:20,padding:'16px',marginBottom:14,boxShadow:'0 2px 12px rgba(0,0,0,0.05)'}}>
                     <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12}}>
                       <div style={{width:32,height:32,borderRadius:10,background:'#fef3c7',display:'flex',alignItems:'center',justifyContent:'center'}}><TrendingDown size={16} color="#d97706"/></div>
-                      <div style={S.secTitle}>DÃ­as con mÃ¡s gastos</div>
+                      <div style={S.secTitle}>Días con más gastos</div>
                     </div>
                     {top3.map(([fecha,monto],i)=>(
                       <div key={fecha} style={{display:'flex',alignItems:'center',gap:10,padding:'8px 0',borderBottom:i<2?'1px solid #f5f3ff':'none'}}>
@@ -1101,7 +1101,7 @@ export default function App({ user, data, onLogout }) {
                 );
               })()}
 
-              {/* â”€â”€ CategorÃ­a que mÃ¡s crece â”€â”€ */}
+              {/* â”€â”€ Categoría que más crece â”€â”€ */}
               {(() => {
                 const top = catData[0];
                 if (!top) return null;
@@ -1113,7 +1113,7 @@ export default function App({ user, data, onLogout }) {
                   <div style={{background:'#fff',borderRadius:20,padding:'16px',marginBottom:14,boxShadow:'0 2px 12px rgba(0,0,0,0.05)'}}>
                     <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12}}>
                       <div style={{width:32,height:32,borderRadius:10,background:info.color+'18',display:'flex',alignItems:'center',justifyContent:'center'}}><Icon size={16} color={info.color}/></div>
-                      <div style={S.secTitle}>Mayor categorÃ­a de gasto</div>
+                      <div style={S.secTitle}>Mayor categoría de gasto</div>
                     </div>
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}>
                       <div>
@@ -1129,11 +1129,11 @@ export default function App({ user, data, onLogout }) {
                 );
               })()}
 
-              {/* â”€â”€ Pie por categorÃ­a â”€â”€ */}
+              {/* â”€â”€ Pie por categoría â”€â”€ */}
               <div style={{background:'#fff',borderRadius:20,padding:'16px',marginBottom:14,boxShadow:'0 2px 12px rgba(0,0,0,0.05)'}}>
                 <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12}}>
                   <div style={{width:32,height:32,borderRadius:10,background:'#ede9fe',display:'flex',alignItems:'center',justifyContent:'center'}}><BarChart2 size={16} color="#7c3aed"/></div>
-                  <div style={S.secTitle}>DistribuciÃ³n de gastos</div>
+                  <div style={S.secTitle}>Distribución de gastos</div>
                 </div>
                 <ResponsiveContainer width="100%" height={180}>
                   <PieChart>
@@ -1168,7 +1168,7 @@ export default function App({ user, data, onLogout }) {
                     <Bar dataKey="gastos"   fill="#7c3aed" radius={[4,4,0,0]} name="Gastos"/>
                   </BarChart>
                 </ResponsiveContainer>
-                {/* FASE D: ConclusiÃ³n del grÃ¡fico */}
+                {/* FASE D: Conclusión del gráfico */}
                 {barData.length >= 2 && (()=>{
                   const ultimo = barData[barData.length-1];
                   const anterior = barData[barData.length-2];
@@ -1179,9 +1179,9 @@ export default function App({ user, data, onLogout }) {
                     <div style={{marginTop:10,background:'#f9f8ff',borderRadius:12,padding:'10px 12px'}}>
                       <div style={{fontSize:12,color:'#1f1b4b',lineHeight:1.6}}>
                         {diffGasto > 0
-                          ? <span>Gastas <strong style={{color:'#ef4444'}}>S/ {Math.abs(diffGasto).toFixed(0)} mÃ¡s</strong> que el mes pasado</span>
+                          ? <span>Gastas <strong style={{color:'#ef4444'}}>S/ {Math.abs(diffGasto).toFixed(0)} más</strong> que el mes pasado</span>
                           : <span>Gastas <strong style={{color:'#10b981'}}>S/ {Math.abs(diffGasto).toFixed(0)} menos</strong> que el mes pasado</span>}
-                        {diffIngreso > 0 && <span> Â· Ingresos <strong style={{color:'#10b981'}}>+S/ {diffIngreso.toFixed(0)}</strong></span>}
+                        {diffIngreso > 0 && <span> · Ingresos <strong style={{color:'#10b981'}}>+S/ {diffIngreso.toFixed(0)}</strong></span>}
                       </div>
                     </div>
                   );
@@ -1195,34 +1195,34 @@ export default function App({ user, data, onLogout }) {
                 const cuotasMes  = prestamos.reduce((s,p)=>s+p.cuotaMensual,0);
                 const topCat     = catData[0];
                 const gastosDiarios = txs.filter(t=>t.tipo==='gasto');
-                // DÃ­a de la semana con mÃ¡s gastos
+                // Día de la semana con más gastos
                 const porDia = {0:0,1:0,2:0,3:0,4:0,5:0,6:0};
                 gastosDiarios.forEach(t=>{ const d=new Date(t.fecha).getDay(); porDia[d]=(porDia[d]||0)+t.monto; });
                 const diaMasGasto = Object.entries(porDia).sort((a,b)=>b[1]-a[1])[0];
-                const diasSemana = ['domingos','lunes','martes','miÃ©rcoles','jueves','viernes','sÃ¡bados'];
+                const diasSemana = ['domingos','lunes','martes','miércoles','jueves','viernes','sábados'];
 
                 // Gastos con TC vs efectivo
                 const gastoTC = txs.filter(t=>t.tipo==='gasto'&&t.medioPago==='tc').reduce((s,t)=>s+t.monto,0);
                                 const pctTC   = stats.gastos>0?Math.round(gastoTC/stats.gastos*100):0;
 
-                if (tasaAhorro >= 20) insights.push({ color:'#10b981', bg:'#f0fdf4', border:'#bbf7d0', emoji:'ðŸŽ¯', titulo:`Ahorras el ${tasaAhorro.toFixed(1)}% de tus ingresos`, texto:`EstÃ¡s por encima del 20% recomendado. Cada mes guardas ${fmt(stats.balance)} que trabajan para ti.` });
+                if (tasaAhorro >= 20) insights.push({ color:'#10b981', bg:'#f0fdf4', border:'#bbf7d0', emoji:'ðŸŽ¯', titulo:`Ahorras el ${tasaAhorro.toFixed(1)}% de tus ingresos`, texto:`Estás por encima del 20% recomendado. Cada mes guardas ${fmt(stats.balance)} que trabajan para ti.` });
                 else if (tasaAhorro > 0) insights.push({ color:'#f59e0b', bg:'#fffbeb', border:'#fde68a', emoji:'ðŸ“Š', titulo:`Ahorro al ${tasaAhorro.toFixed(1)}%`, texto:`Para llegar al 20% recomendado necesitas ahorrar ${fmt(stats.ingresos*0.2)} al mes. Te faltan ${fmt(stats.ingresos*0.2-stats.balance)}.` });
 
-                if (topCat && topCat[0] !== 'Deporte') insights.push({ color:'#7c3aed', bg:'#f5f3ff', border:'#ddd6fe', emoji:'ðŸ”', titulo:`${topCat[0]} es tu mayor gasto`, texto:`Represents el ${Math.round(topCat[1]/stats.gastos*100)}% de tus gastos totales â€” equivale a ${fmt(topCat[1])} este mes.` });
+                if (topCat && topCat[0] !== 'Deporte') insights.push({ color:'#7c3aed', bg:'#f5f3ff', border:'#ddd6fe', emoji:'ðŸ”', titulo:`${topCat[0]} es tu mayor gasto`, texto:`Represents el ${Math.round(topCat[1]/stats.gastos*100)}% de tus gastos totales — equivale a ${fmt(topCat[1])} este mes.` });
 
-                if (diaMasGasto && porDia[diaMasGasto[0]] > 0) insights.push({ color:'#0891b2', bg:'#eff6ff', border:'#bfdbfe', emoji:'ðŸ“…', titulo:`Los ${diasSemana[diaMasGasto[0]]} gastas mÃ¡s`, texto:`${fmt(diaMasGasto[1])} en total. Estar consciente de este patrÃ³n es el primer paso para cambiarlo.` });
+                if (diaMasGasto && porDia[diaMasGasto[0]] > 0) insights.push({ color:'#0891b2', bg:'#eff6ff', border:'#bfdbfe', emoji:'ðŸ“…', titulo:`Los ${diasSemana[diaMasGasto[0]]} gastas más`, texto:`${fmt(diaMasGasto[1])} en total. Estar consciente de este patrón es el primer paso para cambiarlo.` });
 
-                if (pctTC > 50) insights.push({ color:'#ef4444', bg:'#fef2f2', border:'#fecaca', emoji:'ðŸ’³', titulo:`${pctTC}% de tus gastos van a TC`, texto:`MÃ¡s de la mitad de tus gastos acumulan deuda. Cuando puedas, prioriza pagar con efectivo para no inflar el consumido.` });
-                else if (pctTC > 0) insights.push({ color:'#10b981', bg:'#f0fdf4', border:'#bbf7d0', emoji:'ðŸ’³', titulo:`Solo el ${pctTC}% va a TC`, texto:`Buen balance. Usas la tarjeta con moderaciÃ³n. Sigue asÃ­ y tu deuda TC serÃ¡ manejable.` });
+                if (pctTC > 50) insights.push({ color:'#ef4444', bg:'#fef2f2', border:'#fecaca', emoji:'ðŸ’³', titulo:`${pctTC}% de tus gastos van a TC`, texto:`Más de la mitad de tus gastos acumulan deuda. Cuando puedas, prioriza pagar con efectivo para no inflar el consumido.` });
+                else if (pctTC > 0) insights.push({ color:'#10b981', bg:'#f0fdf4', border:'#bbf7d0', emoji:'ðŸ’³', titulo:`Solo el ${pctTC}% va a TC`, texto:`Buen balance. Usas la tarjeta con moderación. Sigue así y tu deuda TC será manejable.` });
 
                 // Insight positivo si gasta en deporte
                 const gastoDeporte = txs.filter(t=>t.tipo==='gasto'&&t.categoria==='Deporte').reduce((s,t)=>s+t.monto,0);
-                if (gastoDeporte > 0) insights.push({ color:'#16a34a', bg:'#f0fdf4', border:'#bbf7d0', emoji:'ðŸ†', titulo:'Inviertes en tu salud fÃ­sica', texto:`Has gastado ${fmt(gastoDeporte)} en deporte. Eso no es un gasto â€” es una inversiÃ³n en tu energÃ­a y rendimiento.` });
+                if (gastoDeporte > 0) insights.push({ color:'#16a34a', bg:'#f0fdf4', border:'#bbf7d0', emoji:'ðŸ†', titulo:'Inviertes en tu salud física', texto:`Has gastado ${fmt(gastoDeporte)} en deporte. Eso no es un gasto — es una inversión en tu energía y rendimiento.` });
 
                 if (cuotasMes > 0 && stats.ingresos > 0) {
                   const ratio = Math.round(cuotasMes/stats.ingresos*100);
                   const diasTrabajo = Math.round(cuotasMes/(stats.ingresos/30));
-                  insights.push({ color: ratio>30?'#f97316':'#6366f1', bg: ratio>30?'#fff7ed':'#f5f3ff', border: ratio>30?'#fed7aa':'#ddd6fe', emoji:'â±ï¸', titulo:`Tus cuotas = ${diasTrabajo} dÃ­as de trabajo`, texto:`Pagas ${fmt(cuotasMes)}/mes en crÃ©ditos â€” el ${ratio}% de tus ingresos. Al terminar el crÃ©dito ****6347 recuperas ${fmt(272.28)}/mes.` });
+                  insights.push({ color: ratio>30?'#f97316':'#6366f1', bg: ratio>30?'#fff7ed':'#f5f3ff', border: ratio>30?'#fed7aa':'#ddd6fe', emoji:'â±ï¸', titulo:`Tus cuotas = ${diasTrabajo} días de trabajo`, texto:`Pagas ${fmt(cuotasMes)}/mes en créditos — el ${ratio}% de tus ingresos. Al terminar el crédito ****6347 recuperas ${fmt(272.28)}/mes.` });
                 }
 
                 if (insights.length===0) return null;
@@ -1230,7 +1230,7 @@ export default function App({ user, data, onLogout }) {
                   <div style={{background:'#fff',borderRadius:20,padding:'16px',marginBottom:14,boxShadow:'0 2px 12px rgba(0,0,0,0.05)'}}>
                     <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:14}}>
                       <div style={{width:32,height:32,borderRadius:10,background:'#fef3c7',display:'flex',alignItems:'center',justifyContent:'center'}}><TrendingUp size={16} color="#d97706"/></div>
-                      <div style={S.secTitle}>Lo que tus nÃºmeros dicen</div>
+                      <div style={S.secTitle}>Lo que tus números dicen</div>
                     </div>
                     {insights.map((ins,i)=>(
                       <div key={i} style={{background:ins.bg,border:`1px solid ${ins.border}`,borderRadius:14,padding:'12px 14px',marginBottom:i<insights.length-1?10:0}}>
@@ -1261,11 +1261,11 @@ export default function App({ user, data, onLogout }) {
                 const urgC = diasCierre<=3?'#ef4444':diasCierre<=5?'#f59e0b':'#7c3aed';
 
                 const fechas = [
-                  { label:'Cierre TC', fecha:ciclo.cierreHasta, dias:diasCierre, color:urgC, Icon:Receipt, sub:'Ãšltimo dÃ­a para consumir este ciclo' },
-                  { label:'Pago TC', fecha:ciclo.limitePago, dias:diasPago, color:urgP, Icon:CreditCard, sub:'Fecha lÃ­mite de pago VISA BCP' },
+                  { label:'Cierre TC', fecha:ciclo.cierreHasta, dias:diasCierre, color:urgC, Icon:Receipt, sub:'Último día para consumir este ciclo' },
+                  { label:'Pago TC', fecha:ciclo.limitePago, dias:diasPago, color:urgP, Icon:CreditCard, sub:'Fecha límite de pago VISA BCP' },
                   ...prestamos.filter(p=>p.capitalPendiente>0).map(p=>{
                     const d = Math.ceil((new Date(p.proximoPago)-hoy)/(1000*60*60*24));
-                    return { label:`Cuota ${p.numero}`, fecha:fmtFecha(p.proximoPago), dias:d, color:d<=3?'#ef4444':d<=10?'#f59e0b':'#10b981', Icon:Landmark, sub:`${fmt(p.cuotaMensual)} Â· Cuota ${p.cuotaActual+1}/${p.totalCuotas}` };
+                    return { label:`Cuota ${p.numero}`, fecha:fmtFecha(p.proximoPago), dias:d, color:d<=3?'#ef4444':d<=10?'#f59e0b':'#10b981', Icon:Landmark, sub:`${fmt(p.cuotaMensual)} · Cuota ${p.cuotaActual+1}/${p.totalCuotas}` };
                   }),
                 ];
 
@@ -1287,7 +1287,7 @@ export default function App({ user, data, onLogout }) {
                         <div style={{textAlign:'right',flexShrink:0}}>
                           <div style={{fontSize:14,fontWeight:800,color:f.color}}>{f.fecha}</div>
                           <div style={{fontSize:11,fontWeight:600,color:f.color,marginTop:1}}>
-                            {f.dias===0?'Hoy':f.dias===1?'MaÃ±ana':`${f.dias} dÃ­as`}
+                            {f.dias===0?'Hoy':f.dias===1?'Mañana':`${f.dias} días`}
                           </div>
                         </div>
                       </div>
@@ -1296,15 +1296,15 @@ export default function App({ user, data, onLogout }) {
                 );
               })()}
 
-              {/* â”€â”€ Solo si casi termina un crÃ©dito â”€â”€ */}
+              {/* â”€â”€ Solo si casi termina un crédito â”€â”€ */}
               {prestamos.find(p=>p.cuotaActual>=p.totalCuotas-5&&p.cuotaActual>0) && (
                 <div style={{background:'#f0fdf4',border:'1.5px solid #bbf7d0',borderRadius:20,padding:'16px',marginBottom:14}}>
                   <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
                     <CheckCircle size={16} color="#16a34a"/>
-                    <span style={{fontSize:14,fontWeight:700,color:'#16a34a'}}>Â¡Casi terminas un crÃ©dito!</span>
+                    <span style={{fontSize:14,fontWeight:700,color:'#16a34a'}}>¡Casi terminas un crédito!</span>
                   </div>
                   <div style={{fontSize:13,color:'#166534',lineHeight:1.6}}>
-                    El crÃ©dito ****6347 tiene solo 5 cuotas restantes. Al terminar tendrÃ¡s <strong>S/ 272.28 extra libre por mes</strong>.
+                    El crédito ****6347 tiene solo 5 cuotas restantes. Al terminar tendrás <strong>S/ 272.28 extra libre por mes</strong>.
                   </div>
                 </div>
               )}
@@ -1322,7 +1322,7 @@ export default function App({ user, data, onLogout }) {
                 <button onClick={()=>setShowSaldoSetup(false)} style={{background:'none',border:'none',cursor:'pointer'}}><X size={20} color="#9ca3af"/></button>
               </div>
               <div style={{fontSize:12,color:'#9ca3af',marginBottom:16,lineHeight:1.5}}>
-                Ingresa cuÃ¡nto tienes ahora mismo en tu cuenta. La app descontarÃ¡ automÃ¡ticamente cada gasto en efectivo y sumarÃ¡ cada ingreso.
+                Ingresa cuánto tienes ahora mismo en tu cuenta. La app descontará automáticamente cada gasto en efectivo y sumará cada ingreso.
               </div>
               <label style={S.label}>Saldo actual (S/.)</label>
               <input style={S.input} type="number" placeholder="0.00" value={saldoInput}
@@ -1355,8 +1355,8 @@ export default function App({ user, data, onLogout }) {
                 <div style={{width:50,height:50,borderRadius:'50%',background:'#dcfce7',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 10px'}}>
                   <CheckCircle size={26} color="#16a34a"/>
                 </div>
-                <div style={{fontSize:18,fontWeight:800,color:'#1f1b4b'}}>Â¡Salario registrado!</div>
-                <div style={{fontSize:13,color:'#9ca3af',marginTop:4}}>Cuotas descontadas automÃ¡ticamente</div>
+                <div style={{fontSize:18,fontWeight:800,color:'#1f1b4b'}}>¡Salario registrado!</div>
+                <div style={{fontSize:13,color:'#9ca3af',marginTop:4}}>Cuotas descontadas automáticamente</div>
               </div>
               <div style={{background:'#f9f8ff',borderRadius:16,padding:'14px',marginBottom:16}}>
                 <div style={{display:'flex',justifyContent:'space-between',marginBottom:10,paddingBottom:10,borderBottom:'1px solid #f0eeff'}}>
