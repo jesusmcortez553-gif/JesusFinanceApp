@@ -8,7 +8,7 @@ import {
   ArrowUpCircle, ArrowDownCircle, Wallet,
   Pencil, Trash2, User, ChevronRight, Calendar,
   AlertTriangle, CheckCircle, PiggyBank, X,
-  CreditCard, Landmark, Clock, TrendingDown, TrendingUp, Receipt,
+  CreditCard, Landmark, Clock, TrendingDown, TrendingUp, Receipt, Search,
 } from 'lucide-react';
 import { CAT_ICONOS, CATS_GASTO, CATS_INGRESO, MESES, PALABRAS_SALARIO, PALABRAS_DISPOSICION, PALABRAS_PAGO_TC } from './constants/categorias';
 import { fmt, fmtInt, fmtFecha, diasHasta, urgenciaColor } from './utils/format';
