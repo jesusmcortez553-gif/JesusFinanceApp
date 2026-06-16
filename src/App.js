@@ -11,7 +11,7 @@ import {
   CreditCard, Landmark, Clock, TrendingDown, TrendingUp, Receipt,
 } from 'lucide-react';
 import { CAT_ICONOS, CATS_GASTO, CATS_INGRESO, MESES, PALABRAS_SALARIO, PALABRAS_DISPOSICION, PALABRAS_PAGO_TC } from './constants/categorias';
-import { fmt, fmtShort, fmtInt, fmtFecha, diasHasta, urgenciaColor } from './utils/format';
+import { fmt, fmtInt, fmtFecha, diasHasta, urgenciaColor } from './utils/format';
 import { getCicloActual, parseLimitePago, alertaTC } from './utils/bcp';
 import { limpiarDescripcion, extraerMonto, detectarAlerta, clasificarGasto, clasificarIngreso, generarSugerencias } from './utils/clasificar';
 import CustomTooltip from './components/CustomTooltip';
