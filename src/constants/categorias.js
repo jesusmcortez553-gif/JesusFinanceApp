@@ -11,6 +11,7 @@ export const CAT_ICONOS = {
   'Viajes':        { icon: Plane,        color: '#0891b2' },
   'Servicios':     { icon: Zap,          color: '#eab308' },
   'Salud':         { icon: Heart,        color: '#ef4444' },
+  'Deporte':        { icon: Target,        color: '#16a34a' },
   'Entretenimiento':{ icon: Gamepad2,    color: '#8b5cf6' },
   'Vida nocturna': { icon: Moon,         color: '#6d28d9' },
   'Educación':     { icon: BookOpen,     color: '#06b6d4' },
