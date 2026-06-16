@@ -953,7 +953,7 @@ export default function App({ user, data, onLogout }) {
                     <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginTop:4}}>
                       <button onClick={()=>{sugs.forEach(s=>{setPresupuestos(prev=>[...prev,{id:Date.now()+Math.random(),categoria:s.categoria,limite:s.sugerido}]);if(addPres) addPres({categoria:s.categoria,limite:s.sugerido}).catch(()=>{});});setSugerenciasDescartadas(true);}}
                         style={{padding:'10px',borderRadius:12,border:'none',background:'#fff',color:'#0f766e',fontWeight:800,fontSize:13,fontFamily:'inherit',cursor:'pointer'}}>
-                        âœ“ Activar todos
+                        Activar todos
                       </button>
                       <button onClick={()=>setSugerenciasDescartadas(true)}
                         style={{padding:'10px',borderRadius:12,border:'1.5px solid rgba(255,255,255,0.4)',background:'transparent',color:'rgba(255,255,255,0.8)',fontWeight:700,fontSize:13,fontFamily:'inherit',cursor:'pointer'}}>
@@ -1205,24 +1205,24 @@ export default function App({ user, data, onLogout }) {
                 const gastoTC = txs.filter(t=>t.tipo==='gasto'&&t.medioPago==='tc').reduce((s,t)=>s+t.monto,0);
                                 const pctTC   = stats.gastos>0?Math.round(gastoTC/stats.gastos*100):0;
 
-                if (tasaAhorro >= 20) insights.push({ color:'#10b981', bg:'#f0fdf4', border:'#bbf7d0', emoji:'ðŸŽ¯', titulo:`Ahorras el ${tasaAhorro.toFixed(1)}% de tus ingresos`, texto:`Estás por encima del 20% recomendado. Cada mes guardas ${fmt(stats.balance)} que trabajan para ti.` });
-                else if (tasaAhorro > 0) insights.push({ color:'#f59e0b', bg:'#fffbeb', border:'#fde68a', emoji:'ðŸ“Š', titulo:`Ahorro al ${tasaAhorro.toFixed(1)}%`, texto:`Para llegar al 20% recomendado necesitas ahorrar ${fmt(stats.ingresos*0.2)} al mes. Te faltan ${fmt(stats.ingresos*0.2-stats.balance)}.` });
+                if (tasaAhorro >= 20) insights.push({ color:'#10b981', bg:'#f0fdf4', border:'#bbf7d0', icon:'Target', titulo:`Ahorras el ${tasaAhorro.toFixed(1)}% de tus ingresos`, texto:`Estás por encima del 20% recomendado. Cada mes guardas ${fmt(stats.balance)} que trabajan para ti.` });
+                else if (tasaAhorro > 0) insights.push({ color:'#f59e0b', bg:'#fffbeb', border:'#fde68a', icon:'BarChart2', titulo:`Ahorro al ${tasaAhorro.toFixed(1)}%`, texto:`Para llegar al 20% recomendado necesitas ahorrar ${fmt(stats.ingresos*0.2)} al mes. Te faltan ${fmt(stats.ingresos*0.2-stats.balance)}.` });
 
-                if (topCat && topCat[0] !== 'Deporte') insights.push({ color:'#7c3aed', bg:'#f5f3ff', border:'#ddd6fe', emoji:'ðŸ”', titulo:`${topCat[0]} es tu mayor gasto`, texto:`Represents el ${Math.round(topCat[1]/stats.gastos*100)}% de tus gastos totales — equivale a ${fmt(topCat[1])} este mes.` });
+                if (topCat && topCat[0] !== 'Deporte') insights.push({ color:'#7c3aed', bg:'#f5f3ff', border:'#ddd6fe', icon:'Search', titulo:`${topCat[0]} es tu mayor gasto`, texto:`Represents el ${Math.round(topCat[1]/stats.gastos*100)}% de tus gastos totales — equivale a ${fmt(topCat[1])} este mes.` });
 
-                if (diaMasGasto && porDia[diaMasGasto[0]] > 0) insights.push({ color:'#0891b2', bg:'#eff6ff', border:'#bfdbfe', emoji:'ðŸ“…', titulo:`Los ${diasSemana[diaMasGasto[0]]} gastas más`, texto:`${fmt(diaMasGasto[1])} en total. Estar consciente de este patrón es el primer paso para cambiarlo.` });
+                if (diaMasGasto && porDia[diaMasGasto[0]] > 0) insights.push({ color:'#0891b2', bg:'#eff6ff', border:'#bfdbfe', icon:'Calendar', titulo:`Los ${diasSemana[diaMasGasto[0]]} gastas más`, texto:`${fmt(diaMasGasto[1])} en total. Estar consciente de este patrón es el primer paso para cambiarlo.` });
 
-                if (pctTC > 50) insights.push({ color:'#ef4444', bg:'#fef2f2', border:'#fecaca', emoji:'ðŸ’³', titulo:`${pctTC}% de tus gastos van a TC`, texto:`Más de la mitad de tus gastos acumulan deuda. Cuando puedas, prioriza pagar con efectivo para no inflar el consumido.` });
-                else if (pctTC > 0) insights.push({ color:'#10b981', bg:'#f0fdf4', border:'#bbf7d0', emoji:'ðŸ’³', titulo:`Solo el ${pctTC}% va a TC`, texto:`Buen balance. Usas la tarjeta con moderación. Sigue así y tu deuda TC será manejable.` });
+                if (pctTC > 50) insights.push({ color:'#ef4444', bg:'#fef2f2', border:'#fecaca', icon:'CreditCard', titulo:`${pctTC}% de tus gastos van a TC`, texto:`Más de la mitad de tus gastos acumulan deuda. Cuando puedas, prioriza pagar con efectivo para no inflar el consumido.` });
+                else if (pctTC > 0) insights.push({ color:'#10b981', bg:'#f0fdf4', border:'#bbf7d0', icon:'CreditCard', titulo:`Solo el ${pctTC}% va a TC`, texto:`Buen balance. Usas la tarjeta con moderación. Sigue así y tu deuda TC será manejable.` });
 
                 // Insight positivo si gasta en deporte
                 const gastoDeporte = txs.filter(t=>t.tipo==='gasto'&&t.categoria==='Deporte').reduce((s,t)=>s+t.monto,0);
-                if (gastoDeporte > 0) insights.push({ color:'#16a34a', bg:'#f0fdf4', border:'#bbf7d0', emoji:'ðŸ†', titulo:'Inviertes en tu salud física', texto:`Has gastado ${fmt(gastoDeporte)} en deporte. Eso no es un gasto — es una inversión en tu energía y rendimiento.` });
+                if (gastoDeporte > 0) insights.push({ color:'#16a34a', bg:'#f0fdf4', border:'#bbf7d0', icon:'TrendingUp', titulo:'Inviertes en tu salud física', texto:`Has gastado ${fmt(gastoDeporte)} en deporte. Eso no es un gasto — es una inversión en tu energía y rendimiento.` });
 
                 if (cuotasMes > 0 && stats.ingresos > 0) {
                   const ratio = Math.round(cuotasMes/stats.ingresos*100);
                   const diasTrabajo = Math.round(cuotasMes/(stats.ingresos/30));
-                  insights.push({ color: ratio>30?'#f97316':'#6366f1', bg: ratio>30?'#fff7ed':'#f5f3ff', border: ratio>30?'#fed7aa':'#ddd6fe', emoji:'â±ï¸', titulo:`Tus cuotas = ${diasTrabajo} días de trabajo`, texto:`Pagas ${fmt(cuotasMes)}/mes en créditos — el ${ratio}% de tus ingresos. Al terminar el crédito ****6347 recuperas ${fmt(272.28)}/mes.` });
+                  insights.push({ color: ratio>30?'#f97316':'#6366f1', bg: ratio>30?'#fff7ed':'#f5f3ff', border: ratio>30?'#fed7aa':'#ddd6fe', icon:'Clock', titulo:`Tus cuotas = ${diasTrabajo} días de trabajo`, texto:`Pagas ${fmt(cuotasMes)}/mes en créditos — el ${ratio}% de tus ingresos. Al terminar el crédito ****6347 recuperas ${fmt(272.28)}/mes.` });
                 }
 
                 if (insights.length===0) return null;
@@ -1235,7 +1235,7 @@ export default function App({ user, data, onLogout }) {
                     {insights.map((ins,i)=>(
                       <div key={i} style={{background:ins.bg,border:`1px solid ${ins.border}`,borderRadius:14,padding:'12px 14px',marginBottom:i<insights.length-1?10:0}}>
                         <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:5}}>
-                          <span style={{fontSize:16}}>{ins.emoji}</span>
+                          <>{ins.icon==='Target'&&<Target size={16} color={ins.color}/>}{ins.icon==='BarChart2'&&<BarChart2 size={16} color={ins.color}/>}{ins.icon==='Search'&&<Search size={16} color={ins.color}/>}{ins.icon==='Calendar'&&<Calendar size={16} color={ins.color}/>}{ins.icon==='CreditCard'&&<CreditCard size={16} color={ins.color}/>}{ins.icon==='TrendingUp'&&<TrendingUp size={16} color={ins.color}/>}{ins.icon==='Clock'&&<Clock size={16} color={ins.color}/>}</>
                           <span style={{fontSize:13,fontWeight:700,color:ins.color}}>{ins.titulo}</span>
                         </div>
                         <div style={{fontSize:12,color:'#374151',lineHeight:1.6,paddingLeft:24}}>{ins.texto}</div>
