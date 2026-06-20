@@ -512,7 +512,7 @@ export default function App({ user, data, onLogout }) {
             </div>
           ))}
 
-          <div style={(alertas.length>0 || alertaTC().length>0) ? S.statsRowWithAlerts : S.statsRow}>
+          <div style={(alertas.length>0 || alertaTC().length>0 || proximosVenc.filter(v=>diasHasta(v.fecha)<=10).length>0) ? S.statsRowWithAlerts : S.statsRow}>
             {[{label:'Ingresos',val:stats.ingresos,color:'#10b981',Icon:ArrowUpCircle},{label:'Gastos',val:stats.gastos,color:'#ef4444',Icon:ArrowDownCircle},{label:'Ahorro',val:stats.balance,color:'#7c3aed',Icon:Wallet}].map(s=>(
               <div key={s.label} style={S.statCard}><div style={S.statIconWrap(s.color)}><s.Icon size={16} color={s.color}/></div><div style={S.statLabel}>{s.label}</div><div style={S.statVal(s.color)}>{fmt(s.val)}</div></div>
             ))}
