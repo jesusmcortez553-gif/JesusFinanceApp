@@ -789,7 +789,7 @@ export default function App({ user, data, onLogout }) {
             <div style={S.pageHeader('linear-gradient(135deg,#1e1b4b,#4338ca)')}>
               <div style={S.bubble(-40,'-40px',undefined,undefined,140,140,0.07)}/>
               <div style={S.pageTitle}>Deudas y Créditos</div>
-              <div style={S.pageSub}>BCP — Jesús Cortez</div>
+              <div style={S.pageSub}>{user?.displayName?.split(' ')[0] || 'Usuario'}</div>
             </div>
             <div style={{padding:'16px'}}>
               <ResumenDeudas tcs={tcs} prestamos={prestamos}/>
