@@ -953,7 +953,7 @@ export default function App({ user, data, onLogout }) {
                     <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginTop:4}}>
                       <button onClick={()=>{sugs.forEach(s=>{setPresupuestos(prev=>[...prev,{id:Date.now()+Math.random(),categoria:s.categoria,limite:s.sugerido}]);if(addPres) addPres({categoria:s.categoria,limite:s.sugerido}).catch(()=>{});});setSugerenciasDescartadas(true);}}
                         style={{padding:'10px',borderRadius:12,border:'none',background:'#fff',color:'#0f766e',fontWeight:800,fontSize:13,fontFamily:'inherit',cursor:'pointer'}}>
-                        âœ“ Activar todos
+                        Activar todos
                       </button>
                       <button onClick={()=>setSugerenciasDescartadas(true)}
                         style={{padding:'10px',borderRadius:12,border:'1.5px solid rgba(255,255,255,0.4)',background:'transparent',color:'rgba(255,255,255,0.8)',fontWeight:700,fontSize:13,fontFamily:'inherit',cursor:'pointer'}}>
