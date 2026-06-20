@@ -1024,8 +1024,8 @@ export default function App({ user, data, onLogout }) {
                       <div style={{color:'rgba(255,255,255,0.6)',fontSize:11,textTransform:'uppercase',letterSpacing:0.5,marginBottom:4}}>Saldo disponible en cuenta</div>
                       <div style={{color:'#fff',fontSize:32,fontWeight:800}}>{fmt(saldoCuenta)}</div>
                       <div style={{color:'rgba(255,255,255,0.6)',fontSize:11,marginTop:4}}>
-                        {saldoCuenta < 200 ? 'âš ï¸ Saldo bajo — considera reducir gastos' :
-                         saldoCuenta < 500 ? 'Saldo moderado' : 'âœ“ Saldo saludable'}
+                        {saldoCuenta < 200 ? 'Saldo bajo — considera reducir gastos' :
+                         saldoCuenta < 500 ? 'Saldo moderado' : 'Saldo saludable'}
                       </div>
                     </div>
                     <button onClick={()=>setShowSaldoSetup(true)} style={{background:'rgba(255,255,255,0.15)',border:'none',borderRadius:12,padding:'8px 12px',color:'#fff',fontSize:12,fontFamily:'inherit',cursor:'pointer',display:'flex',alignItems:'center',gap:5}}>
