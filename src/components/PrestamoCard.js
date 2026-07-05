@@ -4,7 +4,7 @@ import { fmt, fmtFecha, diasHasta, urgenciaColor } from '../utils/format';
 
 const actionBtn = (bg) => ({ width:30,height:30,borderRadius:9,background:bg,border:'none',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0 });
 
-export default function PrestamoCard({ prestamo, onEdit, onDelete, onPagar }) {
+export default function PrestamoCard({ prestamo, onEdit, onDelete, onPagar, pagando }) {
   const pct       = Math.round(prestamo.pagado / prestamo.montoOriginal * 100);
   const diasV     = diasHasta(prestamo.proximoPago);
   const urg       = urgenciaColor(diasV);
@@ -65,16 +65,16 @@ export default function PrestamoCard({ prestamo, onEdit, onDelete, onPagar }) {
 
       <button
         onClick={onPagar}
-        disabled={yaPagado}
+        disabled={yaPagado || pagando}
         style={{
           width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:8,
-          padding:'11px', borderRadius:12, border:'none', cursor: yaPagado ? 'default' : 'pointer',
-          background: yaPagado ? '#f3f4f6' : 'linear-gradient(135deg,#16a34a,#15803d)',
-          color: yaPagado ? '#9ca3af' : '#fff', fontSize:13, fontWeight:700,
+          padding:'11px', borderRadius:12, border:'none', cursor: (yaPagado || pagando) ? 'default' : 'pointer',
+          background: (yaPagado || pagando) ? '#f3f4f6' : 'linear-gradient(135deg,#16a34a,#15803d)',
+          color: (yaPagado || pagando) ? '#9ca3af' : '#fff', fontSize:13, fontWeight:700,
         }}
       >
         <Wallet size={16}/>
-        {yaPagado ? 'Crédito pagado' : `Pagar cuota ${fmt(prestamo.cuotaMensual)}`}
+        {yaPagado ? 'Crédito pagado' : pagando ? 'Registrando...' : `Pagar cuota ${fmt(prestamo.cuotaMensual)}`}
       </button>
     </div>
   );
