@@ -1,8 +1,11 @@
 import { DICCIONARIO, CIUDADES, MENSAJES_NOCHE, MENSAJES_ALCOHOL } from '../constants/categorias';
 
+// Quita acentos y pasa a minúsculas. Antes esto se repetía 10 veces en este archivo.
+export const normalizar = (s) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
 export const limpiarDescripcion = (texto, monto, categoria) => {
   if (!texto) return texto;
-  const norm = (s) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  const norm = (s) => normalizar(s);
   let limpio = texto.trim();
   if (categoria) {
     const catNorm = norm(categoria);
@@ -45,7 +48,7 @@ export const extraerMonto = (texto) => {
 
 export const detectarAlerta = (descripcion) => {
   const hora = new Date().getHours();
-  const texto = descripcion.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+  const texto = normalizar(descripcion);
   const esNocturno = hora >= 23 || hora <= 4;
   const palabrasAlc = ['cerve','cerveza','ron','whisky','pisco','shots','trag','licor','vino','wine','hit','wild','cigarr','tabaco','discotec','bar','kara','tragos','copas','coctail','fiesta','botella','chela','chelas'];
   const esAlcohol  = palabrasAlc.some(p => texto.includes(p.toLowerCase().trim()));
@@ -57,7 +60,7 @@ export const detectarAlerta = (descripcion) => {
 
 export const clasificarGasto = (descripcion, monto = 0) => {
   if (!descripcion || descripcion.length < 2) return null;
-  const texto = descripcion.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+  const texto = normalizar(descripcion);
   const hora  = new Date().getHours();
   const esNocturno = hora >= 21 || hora <= 5;
   const montoNum   = parseFloat(monto) || 0;
@@ -65,7 +68,7 @@ export const clasificarGasto = (descripcion, monto = 0) => {
   const categoriasValidas = Object.keys(DICCIONARIO).concat(['Vida nocturna','Salidas','Viajes','Familiar','Social','Regalo']);
   const categoriasNormalizadas = categoriasValidas.map(c => ({
     original: c,
-    normalizada: c.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'')
+    normalizada: normalizar(c)
   }));
   for (const { original, normalizada } of categoriasNormalizadas) {
     if (new RegExp(`\\b${normalizada}\\s*$`).test(texto) || new RegExp(`^\\s*${normalizada}\\b`).test(texto))
@@ -79,14 +82,14 @@ export const clasificarGasto = (descripcion, monto = 0) => {
     return { categoria:'Alimentación', confianza:'alta', ajustado:false };
 
   const palabrasFam = ['familia','familiar','mamá','mama','papá','papa','hermano','hermana','hijo','hija','tio','tia','abuelo','abuela'];
-  if (palabrasFam.some(p => texto.includes(p.normalize('NFD').replace(/[̀-ͯ]/g,''))))
+  if (palabrasFam.some(p => texto.includes(normalizar(p))))
     return { categoria:'Familiar', confianza:'alta', ajustado:false };
   const palabrasSoc = ['amigos','amigo','amiga','patas','pata','invité','cubrí','cumpleaños de'];
-  if (palabrasSoc.some(p => texto.includes(p.normalize('NFD').replace(/[̀-ͯ]/g,''))))
+  if (palabrasSoc.some(p => texto.includes(normalizar(p))))
     return { categoria:'Social', confianza:'alta', ajustado:false };
 
   const palabrasRegalo = ['regalo','regalito','detalle','presente','sorpresa','cumpleaños para','dia de la madre','dia del padre','san valentin','navidad'];
-  if (palabrasRegalo.some(p => texto.includes(p.normalize('NFD').replace(/[̀-ͯ]/g,''))))
+  if (palabrasRegalo.some(p => texto.includes(normalizar(p))))
     return { categoria:'Regalo', confianza:'alta', ajustado:false };
 
   const tieneDestino = CIUDADES.some(c => texto.includes(c));
@@ -100,7 +103,7 @@ export const clasificarGasto = (descripcion, monto = 0) => {
   for (const [cat, palabras] of Object.entries(DICCIONARIO)) {
     if (['Vida nocturna','Familiar','Social','Regalo'].includes(cat)) continue;
     for (const palabra of palabras) {
-      const p = palabra.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').trim();
+      const p = normalizar(palabra).trim();
       if (texto.includes(p) && p.length > mejorScore) { mejorScore = p.length; mejorCat = cat; }
     }
   }
@@ -128,11 +131,11 @@ const DICCIONARIO_INGRESOS = {
 
 export const clasificarIngreso = (descripcion) => {
   if (!descripcion || descripcion.length < 2) return null;
-  const texto = descripcion.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+  const texto = normalizar(descripcion);
   let mejorCat = null; let mejorScore = 0;
   for (const [cat, palabras] of Object.entries(DICCIONARIO_INGRESOS)) {
     for (const palabra of palabras) {
-      const p = palabra.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+      const p = normalizar(palabra);
       if (texto.includes(p) && p.length > mejorScore) { mejorScore = p.length; mejorCat = cat; }
     }
   }

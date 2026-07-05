@@ -1,14 +1,15 @@
 import React from 'react';
-import { Landmark, Pencil, Trash2, CheckCircle } from 'lucide-react';
+import { Landmark, Pencil, Trash2, Wallet } from 'lucide-react';
 import { fmt, fmtFecha, diasHasta, urgenciaColor } from '../utils/format';
 
 const actionBtn = (bg) => ({ width:30,height:30,borderRadius:9,background:bg,border:'none',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0 });
 
-export default function PrestamoCard({ prestamo, onEdit, onDelete }) {
+export default function PrestamoCard({ prestamo, onEdit, onDelete, onPagar }) {
   const pct       = Math.round(prestamo.pagado / prestamo.montoOriginal * 100);
   const diasV     = diasHasta(prestamo.proximoPago);
   const urg       = urgenciaColor(diasV);
   const restaCuotas = prestamo.totalCuotas - prestamo.cuotaActual;
+  const yaPagado  = prestamo.capitalPendiente <= 0;
 
   return (
     <div style={{background:'#fff',borderRadius:18,padding:'16px',marginBottom:12,boxShadow:'0 2px 12px rgba(0,0,0,0.05)',border:`1.5px solid ${diasV<=10?urg.border:'transparent'}`}}>
@@ -54,19 +55,27 @@ export default function PrestamoCard({ prestamo, onEdit, onDelete }) {
         </div>
       </div>
 
-      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',background:'#f9f8ff',borderRadius:12,padding:'10px 12px'}}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',background:'#f9f8ff',borderRadius:12,padding:'10px 12px',marginBottom:12}}>
         <div style={{display:'flex',gap:16}}>
           <div><div style={{fontSize:10,color:'#9ca3af'}}>TEA</div><div style={{fontSize:13,fontWeight:700,color:'#1f1b4b'}}>{prestamo.tea}%</div></div>
           <div><div style={{fontSize:10,color:'#9ca3af'}}>TCEA</div><div style={{fontSize:13,fontWeight:700,color:'#1f1b4b'}}>{prestamo.tcea}%</div></div>
           <div><div style={{fontSize:10,color:'#9ca3af'}}>Cuotas restantes</div><div style={{fontSize:13,fontWeight:700,color:'#1f1b4b'}}>{restaCuotas}</div></div>
         </div>
-        {prestamo.automatico && (
-          <div style={{background:'#dcfce7',borderRadius:8,padding:'4px 8px',display:'flex',alignItems:'center',gap:4}}>
-            <CheckCircle size={11} color="#16a34a"/>
-            <span style={{fontSize:10,color:'#16a34a',fontWeight:700}}>Auto</span>
-          </div>
-        )}
       </div>
+
+      <button
+        onClick={onPagar}
+        disabled={yaPagado}
+        style={{
+          width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:8,
+          padding:'11px', borderRadius:12, border:'none', cursor: yaPagado ? 'default' : 'pointer',
+          background: yaPagado ? '#f3f4f6' : 'linear-gradient(135deg,#16a34a,#15803d)',
+          color: yaPagado ? '#9ca3af' : '#fff', fontSize:13, fontWeight:700,
+        }}
+      >
+        <Wallet size={16}/>
+        {yaPagado ? 'Crédito pagado' : `Pagar cuota ${fmt(prestamo.cuotaMensual)}`}
+      </button>
     </div>
   );
 }
